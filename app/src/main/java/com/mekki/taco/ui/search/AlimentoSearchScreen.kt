@@ -47,7 +47,7 @@ fun AlimentoSearchScreenContent( // Renomeado para indicar que é o conteúdo da
 
     Column(
         modifier = modifier
-            .fillMaxSize() // Ocupa todo o espaço dado pelo chamador
+            .fillMaxSize() // Ocupa o espaço inteiro dado pelo chamador
             .padding(16.dp) // Padding interno da seção
     ) {
         Text(
