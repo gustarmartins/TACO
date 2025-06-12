@@ -1,4 +1,4 @@
-package com.mekki.taco.ui.search
+package com.mekki.taco.presentation.ui.search
 
 import android.util.Log
 import androidx.compose.foundation.clickable
@@ -21,10 +21,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.mekki.taco.data.model.Alimento // Ajuste o import para o seu pacote de modelo
-import com.mekki.taco.data.model.Lipidios
-import com.mekki.taco.data.model.Aminoacidos
-import com.mekki.taco.data.local.AlimentoDao // Ajuste o import para o seu DAO
+import com.mekki.taco.data.db.entity.Alimento // Ajuste o import para o seu pacote de modelo
+import com.mekki.taco.data.db.entity.Lipidios
+import com.mekki.taco.data.db.dao.AlimentoDao // Ajuste o import para o seu DAO
 // import com.mekki.taco.ui.theme.TACOTheme // Ou MaterialTheme se você preferir para o preview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf

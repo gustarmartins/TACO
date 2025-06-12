@@ -2,7 +2,7 @@ package com.mekki.taco.ui.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.mekki.taco.data.local.AlimentoDao
+import com.mekki.taco.data.db.dao.AlimentoDao
 
 class AlimentoViewModelFactory(
     private val alimentoDao: AlimentoDao

@@ -17,10 +17,10 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.mekki.taco.data.local.AlimentoDao // Import do DAO
-import com.mekki.taco.ui.fooddetail.AlimentoDetailScreen // Import da tela de detalhes
-import com.mekki.taco.ui.search.AlimentoDetailViewModel // ViewModel para detalhes
-import com.mekki.taco.ui.search.AlimentoDetailViewModelFactory // Factory para ViewModel de detalhes
+import com.mekki.taco.data.db.dao.AlimentoDao // Import do DAO
+import com.mekki.taco.presentation.ui.fooddetail.AlimentoDetailScreen // Import da tela de detalhes
+import com.mekki.taco.presentation.ui.fooddetail.AlimentoDetailViewModel // ViewModel para detalhes
+import com.mekki.taco.presentation.ui.fooddetail.AlimentoDetailViewModelFactory // Factory para ViewModel de detalhes
 import com.mekki.taco.ui.search.AlimentoViewModel // ViewModel para busca
 import com.mekki.taco.ui.search.AlimentoViewModelFactory // Factory para ViewModel de busca
 

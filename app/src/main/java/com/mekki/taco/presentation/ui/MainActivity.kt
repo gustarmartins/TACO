@@ -10,10 +10,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 // Imports do Room e DAO
-import com.mekki.taco.data.local.AlimentoDao // Import para AlimentoDao
-import com.mekki.taco.data.local.AppDatabase
+import com.mekki.taco.data.db.dao.AlimentoDao // Import para AlimentoDao
+import com.mekki.taco.data.db.database.AppDatabase
 // Imports da UI e ViewModel
-import com.mekki.taco.ui.AppNavHost // Importe seu AppNavHost (verifique o pacote)
+import com.mekki.taco.presentation.navigation.AppNavHost // Importe seu AppNavHost (verifique o pacote)
 import com.mekki.taco.ui.search.AlimentoViewModelFactory // Ajuste o pacote se necessário (ex: com.mekki.taco.ui.search.AlimentoViewModelFactory)
 // Imports do Navigation
 import androidx.navigation.compose.rememberNavController

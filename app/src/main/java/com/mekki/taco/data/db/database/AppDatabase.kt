@@ -10,6 +10,7 @@ import com.mekki.taco.data.model.ItemDieta
 import kotlinx.coroutines.CoroutineScope
 
 // para produção o exportSchema deve ser true
+
 @Database(
     entities = [
         Alimento::class,
@@ -44,7 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     // popula o banco na primeira chamada da DB - apenas caso não exista.
                     .addCallback(AppDatabaseCallback(context.applicationContext, scope))
-                    // deprecated?
+
                     // destrói o banco ao mudar versões
                     .fallbackToDestructiveMigration()
                     .build()

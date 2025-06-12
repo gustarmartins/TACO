@@ -3,8 +3,8 @@ package com.mekki.taco.ui.search // Ou o pacote que você preferir
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mekki.taco.data.model.Alimento
-import com.mekki.taco.data.local.AlimentoDao
+import com.mekki.taco.data.db.entity.Alimento
+import com.mekki.taco.data.db.dao.AlimentoDao
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

@@ -18,15 +18,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 // Imports para os modelos de dados e DAO (ajuste os caminhos se forem diferentes)
-import com.mekki.taco.data.model.Alimento
-import com.mekki.taco.data.model.Aminoacidos
-import com.mekki.taco.data.model.Lipidios
-import com.mekki.taco.data.local.AlimentoDao
+import com.mekki.taco.data.db.entity.Alimento
+import com.mekki.taco.data.db.entity.Lipidios
+import com.mekki.taco.data.db.dao.AlimentoDao
 // Import para o ViewModel (ajuste o caminho se for diferente)
 import com.mekki.taco.ui.search.AlimentoViewModel
 import kotlinx.coroutines.flow.Flow
