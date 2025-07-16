@@ -99,9 +99,48 @@ fun AppNavHost(
             PlaceholderScreen(screenName = "Planejamento de Dieta")
         }
 
-        // Placeholder para a tela de Diário Alimentar
-        composable(route = AppDestinations.DAILY_LOG_ROUTE) {
-            PlaceholderScreen(screenName = "Diário Alimentar")
+        composable(
+            route = AppDestinations.DIET_DETAIL_WITH_ARG_ROUTE,
+            arguments = listOf(navArgument(AppDestinations.ARG_DIET_ID) { type = NavType.IntType })
+        ) { backStackEntry ->
+            val dietId = backStackEntry.arguments?.getInt(AppDestinations.ARG_DIET_ID)
+            if (dietId != null) {
+                val detailFactory = DietDetailViewModelFactory(dietId, dietaDao, itemDietaDao)
+                val detailViewModel: DietDetailViewModel = viewModel(factory = detailFactory)
+                DietDetailScreen(
+                    viewModel = detailViewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToAddFood = { navController.navigate("${AppDestinations.ALIMENTO_SEARCH_BASE_ROUTE}/$dietId") }
+                )
+            }
+        }
+
+        composable(
+            route = AppDestinations.ADD_FOOD_TO_DIET_WITH_ARGS_ROUTE,
+            arguments = listOf(
+                navArgument(AppDestinations.ARG_DIET_ID) { type = NavType.IntType },
+                navArgument(AppDestinations.ARG_ALIMENTO_ID) { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val dietId = backStackEntry.arguments?.getInt(AppDestinations.ARG_DIET_ID)
+            val foodId = backStackEntry.arguments?.getInt(AppDestinations.ARG_ALIMENTO_ID)
+
+            if (dietId != null && foodId != null) {
+                // Create the factory with the DAOs from AppNavHost
+                val addFoodFactory = AddFoodToDietViewModelFactory(alimentoDao, itemDietaDao)
+                val addFoodViewModel: AddFoodToDietViewModel = viewModel(factory = addFoodFactory)
+
+                AddFoodToDietScreen(
+                    viewModel = addFoodViewModel,
+                    dietId = dietId,
+                    foodId = foodId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onFoodAdded = {
+                        // Pop back to the Diet Detail screen
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
     }
 }
