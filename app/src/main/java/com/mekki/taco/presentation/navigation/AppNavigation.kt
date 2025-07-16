@@ -17,12 +17,34 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.mekki.taco.data.db.dao.AlimentoDao // Import do DAO
-import com.mekki.taco.presentation.ui.fooddetail.AlimentoDetailScreen // Import da tela de detalhes
-import com.mekki.taco.presentation.ui.fooddetail.AlimentoDetailViewModel // ViewModel para detalhes
-import com.mekki.taco.presentation.ui.fooddetail.AlimentoDetailViewModelFactory // Factory para ViewModel de detalhes
-import com.mekki.taco.ui.search.AlimentoViewModel // ViewModel para busca
-import com.mekki.taco.ui.search.AlimentoViewModelFactory // Factory para ViewModel de busca
+import com.mekki.taco.data.db.dao.AlimentoDao
+import com.mekki.taco.data.db.dao.DietaDao
+import com.mekki.taco.presentation.ui.MainScreen
+import com.mekki.taco.presentation.ui.diet.DietDetailScreen
+import com.mekki.taco.presentation.ui.diet.DietDetailViewModel
+import com.mekki.taco.presentation.ui.diet.DietDetailViewModelFactory
+import com.mekki.taco.presentation.ui.diet.DietListScreen
+import com.mekki.taco.presentation.ui.diet.DietListViewModel
+import com.mekki.taco.presentation.ui.diet.DietListViewModelFactory
+import com.mekki.taco.presentation.ui.diet.CreateDietScreen
+import com.mekki.taco.presentation.ui.fooddetail.AlimentoDetailScreen
+import com.mekki.taco.presentation.ui.fooddetail.AlimentoDetailViewModel
+import com.mekki.taco.presentation.ui.fooddetail.AlimentoDetailViewModelFactory
+import com.mekki.taco.presentation.ui.search.AlimentoViewModel
+import com.mekki.taco.presentation.ui.search.AlimentoViewModelFactory
+import com.mekki.taco.presentation.ui.addfood.AddFoodToDietViewModel
+import com.mekki.taco.presentation.ui.addfood.AddFoodToDietViewModelFactory
+import com.mekki.taco.presentation.ui.addfood.AddFoodToDietScreen
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.remember
+import com.mekki.taco.data.db.dao.ItemDietaDao
+import com.mekki.taco.presentation.ui.search.AlimentoSearchScreen
 
 // Definição das rotas para evitar strings mágicas
 object AppDestinations {
