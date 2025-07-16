@@ -116,6 +116,29 @@ fun AppNavHost(
         }
 
         composable(
+            route = AppDestinations.ALIMENTO_SEARCH_WITH_ARG_ROUTE,
+            arguments = listOf(navArgument(AppDestinations.ARG_DIET_ID) { type = NavType.IntType })
+        ) { backStackEntry ->
+            val dietId = backStackEntry.arguments?.getInt(AppDestinations.ARG_DIET_ID)
+            if (dietId != null) {
+                // Reuse the same ViewModelFactory as your MainScreen
+                val searchViewModel: AlimentoViewModel = viewModel(factory = alimentoSearchViewModelFactory)
+
+                // Assuming your AlimentoSearchScreen looks something like this:
+                AlimentoSearchScreen(
+                    viewModel = searchViewModel,
+                    onAlimentoClick = { alimentoId ->
+                        // When a food is clicked, navigate to the AddFoodToDietScreen
+                        navController.navigate(
+                            "${AppDestinations.ADD_FOOD_TO_DIET_BASE_ROUTE}/$dietId/$alimentoId"
+                        )
+                    },
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+        }
+
+        composable(
             route = AppDestinations.ADD_FOOD_TO_DIET_WITH_ARGS_ROUTE,
             arguments = listOf(
                 navArgument(AppDestinations.ARG_DIET_ID) { type = NavType.IntType },
