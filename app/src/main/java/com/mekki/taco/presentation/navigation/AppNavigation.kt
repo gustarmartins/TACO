@@ -127,7 +127,7 @@ fun AppNavHost(
         ) { backStackEntry ->
             val dietId = backStackEntry.arguments?.getInt(AppDestinations.ARG_DIET_ID)
             if (dietId != null) {
-                val detailFactory = DietDetailViewModelFactory(dietId, dietaDao, itemDietaDao)
+                val detailFactory = DietDetailViewModelFactory(dietId, dietaDao)
                 val detailViewModel: DietDetailViewModel = viewModel(factory = detailFactory)
                 DietDetailScreen(
                     viewModel = detailViewModel,
