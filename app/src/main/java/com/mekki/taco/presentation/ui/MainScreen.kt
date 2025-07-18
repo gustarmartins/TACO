@@ -115,25 +115,24 @@ fun AlimentoSearchSectionContent(
     val keyboardController = LocalSoftwareKeyboardController.current
     Log.d("AlimentoSearchSection", "Recompondo: termo='$termoBusca', loading=$isLoading, resultados=${resultados.size}")
 
-    Column(modifier = modifier) {
-        Text(
-            text = "Consulta Rápida",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-        OutlinedTextField(
-            value = termoBusca,
-            onValueChange = onTermoBuscaChange,
-            label = { Text("Buscar alimento...") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = {
-                keyboardController?.hide()
-            }),
-            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Ícone de busca") }
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Consulta Rápida à Tabela TACO",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            OutlinedTextField(
+                value = termoBusca,
+                onValueChange = onTermoBuscaChange,
+                label = { Text("Buscar alimento...") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Ícone de busca") }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
 
         if (isLoading) {
             Row(
