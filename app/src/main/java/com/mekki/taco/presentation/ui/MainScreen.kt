@@ -25,8 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.mekki.taco.data.db.entity.Alimento
 import com.mekki.taco.data.db.entity.Lipidios
 import com.mekki.taco.data.db.dao.AlimentoDao
-// Import para o ViewModel (ajuste o caminho se for diferente)
-import com.mekki.taco.ui.search.AlimentoViewModel
+import com.mekki.taco.presentation.ui.search.AlimentoViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
