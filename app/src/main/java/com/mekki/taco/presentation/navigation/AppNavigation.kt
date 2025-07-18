@@ -132,7 +132,8 @@ fun AppNavHost(
                 DietDetailScreen(
                     viewModel = detailViewModel,
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToAddFood = { navController.navigate("${AppDestinations.ALIMENTO_SEARCH_BASE_ROUTE}/$dietId") }
+                    onNavigateToAddFood = {
+                        navController.navigate("${AppDestinations.ALIMENTO_SEARCH_BASE_ROUTE}/$dietId") }
                 )
             }
         }
