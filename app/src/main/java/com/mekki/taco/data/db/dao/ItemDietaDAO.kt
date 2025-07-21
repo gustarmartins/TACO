@@ -1,12 +1,7 @@
 package com.mekki.taco.data.local
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
-import com.mekki.taco.data.model.ItemDieta
+import androidx.room.*
+import com.mekki.taco.data.db.entity.ItemDieta
 import kotlinx.coroutines.flow.Flow
 
 // Responsável pelas tarefas de DB dos componentes de uma dieta
