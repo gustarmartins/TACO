@@ -1,4 +1,4 @@
-package com.mekki.taco.data.local
+package com.mekki.taco.data.db.dao
 
 import androidx.room.*
 import com.mekki.taco.data.db.entity.ItemDieta
