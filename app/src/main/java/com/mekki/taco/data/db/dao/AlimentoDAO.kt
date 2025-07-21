@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.mekki.taco.data.model.Alimento
+import com.mekki.taco.data.db.entity.Alimento
 import kotlinx.coroutines.flow.Flow
 
 // Responsável pelas tarefas de DB dos nutrientes
