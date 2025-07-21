@@ -4,9 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.mekki.taco.data.model.Alimento
-import com.mekki.taco.data.model.Dieta
-import com.mekki.taco.data.model.ItemDieta
+import com.mekki.taco.data.db.entity.Alimento
+import com.mekki.taco.data.db.entity.Dieta
+import com.mekki.taco.data.db.entity.ItemDieta
+import com.mekki.taco.data.db.dao.AlimentoDao
+import com.mekki.taco.data.db.dao.DietaDao
+import com.mekki.taco.data.db.dao.ItemDietaDao
 import kotlinx.coroutines.CoroutineScope
 
 // para produção o exportSchema deve ser true
