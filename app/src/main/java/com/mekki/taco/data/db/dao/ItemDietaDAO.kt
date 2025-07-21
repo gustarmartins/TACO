@@ -3,6 +3,7 @@ package com.mekki.taco.data.local
 import androidx.room.*
 import com.mekki.taco.data.db.entity.ItemDieta
 import kotlinx.coroutines.flow.Flow
+import com.mekki.taco.data.model.ItemDietaComAlimento
 
 // Responsável pelas tarefas de DB dos componentes de uma dieta
 @Dao
