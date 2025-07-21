@@ -1,4 +1,4 @@
-package com.mekki.taco.data.local
+package com.mekki.taco.data.db.database
 
 import android.content.Context
 import androidx.room.Database
