@@ -1,5 +1,4 @@
-// Arquivo: com/mekki/taco/viewmodel/DietListViewModel.kt
-package com.mekki.taco.ui.search
+package com.mekki.taco.presentation.ui.diet
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
