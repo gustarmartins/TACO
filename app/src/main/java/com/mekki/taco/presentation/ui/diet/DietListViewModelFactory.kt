@@ -3,7 +3,8 @@ package com.mekki.taco.ui.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.mekki.taco.data.db.dao.DietaDao // Importe seu DietaDao
+import com.mekki.taco.data.db.dao.DietaDao
+import com.mekki.taco.data.db.dao.ItemDietaDao
 
 class DietListViewModelFactory(
     private val dietaDao: DietaDao,
