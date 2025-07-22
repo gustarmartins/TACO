@@ -24,7 +24,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.mekki.taco.data.db.dao.AlimentoDao
 import com.mekki.taco.data.db.dao.DietaDao
-import com.mekki.taco.presentation.ui.MainScreen
 import com.mekki.taco.presentation.ui.diet.DietDetailScreen
 import com.mekki.taco.presentation.ui.diet.DietDetailViewModel
 import com.mekki.taco.presentation.ui.diet.DietDetailViewModelFactory
