@@ -40,16 +40,11 @@ import com.mekki.taco.presentation.ui.search.AlimentoViewModelFactory
 import com.mekki.taco.presentation.ui.addfood.AddFoodToDietViewModel
 import com.mekki.taco.presentation.ui.addfood.AddFoodToDietViewModelFactory
 import com.mekki.taco.presentation.ui.addfood.AddFoodToDietScreen
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.runtime.remember
-import com.mekki.taco.data.db.dao.ItemDietaDao
+import com.mekki.taco.presentation.ui.home.HomeScreen
+import com.mekki.taco.presentation.ui.home.HomeViewModel
+import com.mekki.taco.presentation.ui.home.HomeViewModelFactory
 import com.mekki.taco.presentation.ui.search.AlimentoSearchScreen
+import com.mekki.taco.data.db.dao.ItemDietaDao
 
 // Definição das rotas para evitar strings mágicas
 object AppDestinations {
