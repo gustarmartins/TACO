@@ -3,12 +3,12 @@ package com.mekki.taco.presentation.ui.diet
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mekki.taco.data.db.dao.DietaDao // Importe seu DietaDao
-import com.mekki.taco.data.db.entity.Dieta    // Importe sua entidade Dieta
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
+import com.mekki.taco.data.db.dao.DietaDao
+import com.mekki.taco.data.db.dao.ItemDietaDao
+import com.mekki.taco.data.db.entity.Dieta
+import com.mekki.taco.data.db.entity.ItemDieta
+import com.mekki.taco.data.model.ItemDietaComAlimento
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class DietListViewModel(private val dietaDao: DietaDao) : ViewModel() {
