@@ -12,7 +12,7 @@ class DietListViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DietListViewModel::class.java)) {
-            return DietListViewModel(dietaDao) as T
+            return DietListViewModel(dietaDao, itemDietaDao) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name} - Did you forget to register it in the factory?")
     }
