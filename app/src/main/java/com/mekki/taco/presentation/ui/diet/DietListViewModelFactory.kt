@@ -14,6 +14,6 @@ class DietListViewModelFactory(
         if (modelClass.isAssignableFrom(DietListViewModel::class.java)) {
             return DietListViewModel(dietaDao, itemDietaDao) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name} - Did you forget to register it in the factory?")
+        throw IllegalArgumentException("Unknown ViewModel class for DietList")
     }
 }
