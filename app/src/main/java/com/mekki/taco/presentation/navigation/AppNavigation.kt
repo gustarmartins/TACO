@@ -1,4 +1,4 @@
-package com.mekki.taco.ui
+package com.mekki.taco.presentation.navigation
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
