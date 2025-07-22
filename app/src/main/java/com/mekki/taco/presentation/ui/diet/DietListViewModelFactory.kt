@@ -6,7 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.mekki.taco.data.db.dao.DietaDao // Importe seu DietaDao
 
 class DietListViewModelFactory(
-    private val dietaDao: DietaDao
+    private val dietaDao: DietaDao,
+    private val itemDietaDao: ItemDietaDao
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
