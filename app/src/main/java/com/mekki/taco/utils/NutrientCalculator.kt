@@ -1,5 +1,5 @@
-// NutrientCalculator
-package com.mekki.taco.util
+// Math.kt
+package com.mekki.taco.utils
 
 import com.mekki.taco.data.db.entity.Alimento
 import com.mekki.taco.data.db.entity.Aminoacidos
