@@ -62,4 +62,20 @@ interface ItemDietaDao {
      */
     @Query("DELETE FROM itens_dieta WHERE dietaId = :idDieta")
     suspend fun deletarTodosItensDeUmaDieta(idDieta: Int)
+
+    /**
+     * Busca todos os itens de uma dieta específica, trazendo também os dados completos
+     * do Alimento associado a cada item.
+     * @Transaction é crucial para garantir que a query de relação seja executada atomicamente.
+     */
+    @Transaction
+    @Query("SELECT * FROM itens_dieta WHERE dietaId = :idDieta")
+    fun buscarItensComAlimentoPorDietaId(idDieta: Int): Flow<List<ItemDietaComAlimento>>
+
+    // Metodo para atualizar a quantidade (para a funcionalidade de edição)
+    @Query("UPDATE itens_dieta SET quantidadeGramas = :novaQuantidade WHERE id = :itemId")
+    suspend fun atualizarQuantidadeItem(itemId: Int, novaQuantidade: Double)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<ItemDieta>)
 }
