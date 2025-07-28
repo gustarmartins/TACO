@@ -68,64 +68,67 @@ object AppDestinations {
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    alimentoDao: AlimentoDao, // DAO é necessário para a AlimentoDetailViewModelFactory
-    // A Factory do AlimentoSearchViewModel é passada diretamente, pois é criada na MainActivity
-    alimentoSearchViewModelFactory: AlimentoViewModelFactory
+    alimentoDao: AlimentoDao,
+    dietaDao: DietaDao,
+    itemDietaDao: ItemDietaDao
 ) {
-    NavHost(navController = navController, startDestination = AppDestinations.MAIN_SCREEN_ROUTE) {
+    NavHost(navController = navController, startDestination = AppDestinations.HOME_ROUTE) {
 
-        // Rota para a Tela Principal (que contém a busca e os botões de navegação)
-        composable(route = AppDestinations.MAIN_SCREEN_ROUTE) {
-            // Instancia o AlimentoViewModel (para a busca) usando sua factory
-            val alimentoSearchViewModel: AlimentoViewModel = viewModel(factory = alimentoSearchViewModelFactory)
-
-            MainScreen(
-                alimentoViewModel = alimentoSearchViewModel,
-                onAlimentoClick = { alimentoId ->
-                    // Navega para a tela de detalhes, passando o ID do alimento
-                    navController.navigate("${AppDestinations.DETAIL_SCREEN_BASE_ROUTE}/$alimentoId")
+        composable(route = AppDestinations.HOME_ROUTE) {
+            val homeFactory = HomeViewModelFactory(dietaDao, alimentoDao)
+            val homeViewModel: HomeViewModel = viewModel(factory = homeFactory)
+            HomeScreen(
+                viewModel = homeViewModel,
+                onNavigateToDietList = {
+                    navController.navigate(AppDestinations.DIET_LIST_ROUTE)
                 },
-                onPlanejarDietaClick = {
-                    Log.d("AppNavHost", "Navegando para Planejamento de Dieta (TODO)")
-                    navController.navigate(AppDestinations.DIET_PLANNING_ROUTE)
-                },
-                onDiarioAlimentarClick = {
-                    Log.d("AppNavHost", "Navegando para Diário Alimentar (TODO)")
-                    navController.navigate(AppDestinations.DAILY_LOG_ROUTE)
+                onNavigateToDiary = {
+                    Log.d("AppNavHost", "Navigate to Diary clicked - TODO")
                 }
             )
         }
 
-        // Rota para a Tela de Detalhes do Alimento
         composable(
-            route = AppDestinations.DETAIL_SCREEN_WITH_ARG_ROUTE,
+            route = AppDestinations.ALIMENTO_DETAIL_WITH_ARG_ROUTE,
             arguments = listOf(navArgument(AppDestinations.ARG_ALIMENTO_ID) { type = NavType.IntType })
         ) { backStackEntry ->
             val alimentoId = backStackEntry.arguments?.getInt(AppDestinations.ARG_ALIMENTO_ID)
             if (alimentoId != null) {
-                // Cria a Factory para o AlimentoDetailViewModel, passando o alimentoId e o DAO
                 val detailViewModelFactory = AlimentoDetailViewModelFactory(alimentoId, alimentoDao)
                 val alimentoDetailViewModel: AlimentoDetailViewModel = viewModel(factory = detailViewModelFactory)
-
                 AlimentoDetailScreen(
                     viewModel = alimentoDetailViewModel,
-                    onNavigateBack = { navController.popBackStack() } // Função para o botão "Voltar"
+                    onNavigateBack = { navController.popBackStack() }
                 )
-            } else {
-                // Lida com o caso de ID nulo/inválido
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Erro: ID do alimento não fornecido ou inválido.", style = MaterialTheme.typography.bodyLarge)
-                }
-            }
+            } else { Text("ID do alimento inválido.") }
         }
 
-        // Placeholder para a tela de Planejamento de Dieta
-        composable(route = AppDestinations.DIET_PLANNING_ROUTE) {
-            PlaceholderScreen(screenName = "Planejamento de Dieta")
+        composable(route = AppDestinations.DIET_LIST_ROUTE) {
+            val dietListFactory = DietListViewModelFactory(dietaDao, itemDietaDao)
+            val dietListViewModel: DietListViewModel = viewModel(factory = dietListFactory)
+            DietListScreen(
+                viewModel = dietListViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCreateDiet = {
+                    navController.navigate(AppDestinations.CREATE_DIET_ROUTE)
+                },
+                onNavigateToDietDetail = { dietId ->
+                    navController.navigate("${AppDestinations.DIET_DETAIL_BASE_ROUTE}/$dietId")
+                }
+            )
+        }
+
+        composable(route = AppDestinations.CREATE_DIET_ROUTE) {
+            val parentEntry = remember(it) { navController.getBackStackEntry(AppDestinations.DIET_LIST_ROUTE) }
+            val dietListViewModel: DietListViewModel = viewModel(viewModelStoreOwner = parentEntry)
+            CreateDietScreen(
+                viewModel = dietListViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddFood = {
+                    // TODO: Implement navigation to search and return a result for the temporary list
+                    Log.d("AppNavHost", "Navigate to add food for new diet (not implemented)")
+                }
+            )
         }
 
         composable(
@@ -140,7 +143,8 @@ fun AppNavHost(
                     viewModel = detailViewModel,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToAddFood = {
-                        navController.navigate("${AppDestinations.ALIMENTO_SEARCH_BASE_ROUTE}/$dietId") }
+                        navController.navigate("${AppDestinations.ALIMENTO_SEARCH_BASE_ROUTE}/$dietId")
+                    }
                 )
             }
         }
@@ -151,14 +155,12 @@ fun AppNavHost(
         ) { backStackEntry ->
             val dietId = backStackEntry.arguments?.getInt(AppDestinations.ARG_DIET_ID)
             if (dietId != null) {
-                // Reuse the same ViewModelFactory as your MainScreen
-                val searchViewModel: AlimentoViewModel = viewModel(factory = alimentoSearchViewModelFactory)
+                val searchViewModelFactory = AlimentoViewModelFactory(alimentoDao)
+                val searchViewModel: AlimentoViewModel = viewModel(factory = searchViewModelFactory)
 
-                // Assuming your AlimentoSearchScreen looks something like this:
                 AlimentoSearchScreen(
                     viewModel = searchViewModel,
                     onAlimentoClick = { alimentoId ->
-                        // When a food is clicked, navigate to the AddFoodToDietScreen
                         navController.navigate(
                             "${AppDestinations.ADD_FOOD_TO_DIET_BASE_ROUTE}/$dietId/$alimentoId"
                         )
@@ -179,7 +181,6 @@ fun AppNavHost(
             val foodId = backStackEntry.arguments?.getInt(AppDestinations.ARG_ALIMENTO_ID)
 
             if (dietId != null && foodId != null) {
-                // Create the factory with the DAOs from AppNavHost
                 val addFoodFactory = AddFoodToDietViewModelFactory(alimentoDao, itemDietaDao)
                 val addFoodViewModel: AddFoodToDietViewModel = viewModel(factory = addFoodFactory)
 
@@ -189,7 +190,6 @@ fun AppNavHost(
                     foodId = foodId,
                     onNavigateBack = { navController.popBackStack() },
                     onFoodAdded = {
-                        // Pop back to the Diet Detail screen
                         navController.popBackStack()
                     }
                 )
@@ -198,15 +198,29 @@ fun AppNavHost(
     }
 }
 
-// Um Composable genérico para telas futuras que ainda não foram implementadas
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlaceholderScreen(screenName: String, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Tela: $screenName", style = MaterialTheme.typography.headlineMedium)
-        Text("(Em construção)", style = MaterialTheme.typography.bodyLarge)
+fun PlaceholderScreen(screenName: String, modifier: Modifier = Modifier, onNavigateBack: (() -> Unit)? = null) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(screenName) },
+                navigationIcon = {
+                    onNavigateBack?.let { navBack ->
+                        IconButton(onClick = navBack) {
+                            Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
+                        }
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("(Em construção)", style = MaterialTheme.typography.bodyLarge)
+        }
     }
 }
