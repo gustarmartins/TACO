@@ -1,4 +1,4 @@
-package com.mekki.taco.ui.fooddetail
+package com.mekki.taco.presentation.ui.fooddetail
 
 import androidx.compose.foundation.layout.*
 import android.util.Log
@@ -19,9 +19,8 @@ import com.mekki.taco.data.db.entity.Alimento // Ajuste o import
 import com.mekki.taco.data.db.entity.Aminoacidos
 import com.mekki.taco.data.db.entity.Lipidios
 // import com.mekki.taco.ui.theme.TACOTheme // Ou MaterialTheme
-import com.mekki.taco.ui.search.AlimentoDetailViewModel // Ajuste o import para o ViewModel
-import com.mekki.taco.util.NutrientesPorPorcao
-import com.mekki.taco.util.NutrientCalculator
+import com.mekki.taco.utils.NutrientesPorPorcao
+import com.mekki.taco.utils.NutrientCalculator
 // Importe a data class de porção
 // Para o Preview
 import com.mekki.taco.data.db.dao.AlimentoDao

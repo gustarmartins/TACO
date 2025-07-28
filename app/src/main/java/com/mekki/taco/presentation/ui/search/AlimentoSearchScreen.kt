@@ -8,12 +8,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-// Remova collectAsState e getValue daqui se AlimentoSearchScreen for stateless
-// import androidx.compose.runtime.collectAsState
-// import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -21,43 +21,81 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.mekki.taco.data.db.entity.Alimento // Ajuste o import para o seu pacote de modelo
+import com.mekki.taco.data.db.dao.AlimentoDao
+import com.mekki.taco.data.db.entity.Alimento
 import com.mekki.taco.data.db.entity.Lipidios
-import com.mekki.taco.data.db.dao.AlimentoDao // Ajuste o import para o seu DAO
-// import com.mekki.taco.ui.theme.TACOTheme // Ou MaterialTheme se você preferir para o preview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-// Este é o Composable que realmente desenha a UI da busca.
-// Ele é "burro" (stateless) - recebe dados e lambdas, não o ViewModel inteiro.
+/**
+ * This is the main, stateful screen composable.
+ * It connects the ViewModel to the UI content and handles navigation.
+ * You will call this from your AppNavHost.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlimentoSearchScreenContent( // Renomeado para indicar que é o conteúdo da UI
+fun AlimentoSearchScreen(
+    viewModel: AlimentoViewModel,
+    onAlimentoClick: (alimentoId: Int) -> Unit,
+    onNavigateBack: () -> Unit
+) {
+    // Collect state from the ViewModel
+    val termoBusca by viewModel.termoBusca.collectAsState()
+    val resultados by viewModel.resultadosBusca.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Buscar Alimento") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        // Call the stateless content composable, passing down the state and event handlers
+        AlimentoSearchScreenContent(
+            modifier = Modifier.padding(paddingValues),
+            termoBusca = termoBusca,
+            onTermoBuscaChange = { viewModel.onTermoBuscaChange(it) },
+            resultados = resultados,
+            isLoading = isLoading,
+            onAlimentoClick = onAlimentoClick, // Pass the navigation lambda through
+            onPerformSearch = { keyboardController?.hide() }
+        )
+    }
+}
+
+
+/**
+ * This is the stateless composable that draws the UI.
+ * It receives all data and callbacks as parameters, making it easy to preview.
+ */
+@Composable
+private fun AlimentoSearchScreenContent(
     modifier: Modifier = Modifier,
     termoBusca: String,
     onTermoBuscaChange: (String) -> Unit,
     resultados: List<Alimento>,
     isLoading: Boolean,
-    onAlimentoClick: (alimentoId: Int) -> Unit, // Lambda para o clique no item
-    onPerformSearch: () -> Unit // Lambda para ação de busca (ex: no teclado)
+    onAlimentoClick: (alimentoId: Int) -> Unit,
+    onPerformSearch: () -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Log.d("AlimentoSearchScreen", "Recompondo Content: termo='$termoBusca', loading=$isLoading, resultados=${resultados.size}")
 
     Column(
         modifier = modifier
-            .fillMaxSize() // Ocupa o espaço inteiro dado pelo chamador
-            .padding(16.dp) // Padding interno da seção
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
-        Text(
-            text = "Consulta Rápida de Alimentos",
-            style = MaterialTheme.typography.headlineSmall, // Ajustado para headlineSmall
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
         OutlinedTextField(
             value = termoBusca,
-            onValueChange = onTermoBuscaChange, // Chama a lambda do ViewModel
+            onValueChange = onTermoBuscaChange,
             label = { Text("Digite o nome do alimento") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -67,7 +105,7 @@ fun AlimentoSearchScreenContent( // Renomeado para indicar que é o conteúdo da
             ),
             keyboardActions = KeyboardActions(
                 onSearch = {
-                    onPerformSearch() // Chama a lambda para ação de busca
+                    onPerformSearch()
                     keyboardController?.hide()
                 }
             ),
@@ -95,10 +133,7 @@ fun AlimentoSearchScreenContent( // Renomeado para indicar que é o conteúdo da
                     modifier = Modifier.align(Alignment.CenterHorizontally).padding(top=8.dp))
             } else if (resultados.isNotEmpty()){
                 LazyColumn(
-                    // Se esta seção for parte de uma tela maior que rola,
-                    // talvez você não queira .fillMaxSize() aqui, ou use .weight(1f)
-                    // ou .heightIn() para controlar o tamanho.
-                    modifier = Modifier.weight(1f, fill = false).heightIn(min=56.dp, max=300.dp),
+                    modifier = Modifier.fillMaxSize(), // Allow list to take available space
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(
@@ -106,20 +141,15 @@ fun AlimentoSearchScreenContent( // Renomeado para indicar que é o conteúdo da
                         key = { alimento -> alimento.id }
                     ) { alimento ->
                         AlimentoListItem(alimento = alimento) {
-                            onAlimentoClick(alimento.id) // Chama a lambda passada
+                            onAlimentoClick(alimento.id)
                         }
                     }
                 }
-            } else {
-                // Espaço reservado se nenhuma das condições acima for atendida
-                // e a lista de resultados estiver vazia (ex: termoBusca vazio no início).
-                Spacer(modifier = Modifier.weight(1f, fill = false).heightIn(min = 56.dp))
             }
         }
     }
 }
 
-// AlimentoListItem permanece o mesmo que você já tem
 @Composable
 fun AlimentoListItem(alimento: Alimento, onClick: () -> Unit) {
     ElevatedCard(
@@ -135,10 +165,7 @@ fun AlimentoListItem(alimento: Alimento, onClick: () -> Unit) {
 }
 
 
-// --- INÍCIO: Código para o Preview ---
-// Coloque esta classe FakeAlimentoDaoPreview no final do seu arquivo AlimentoSearchScreen.kt
-// ou em um arquivo de utilidades de debug/preview e importe-a.
-// Certifique-se que os imports DENTRO dela estão corretos para sua estrutura de pacotes.
+// --- PREVIEW CODE (No changes needed here) ---
 class FakeAlimentoDaoPreview : AlimentoDao {
     val previewAlimentos = listOf(
         Alimento(id=1, codigoOriginal="PREVIEW001", nome="Maçã Fuji (Preview)", categoria="Frutas", energiaKcal=56.0, energiaKj=232.0, proteina=0.3, colesterol=0.0, carboidratos=15.2, fibraAlimentar=1.3, cinzas=0.2, calcio=2.0, magnesio=2.0, manganes=0.03, fosforo=9.0, ferro=0.1, sodio=0.0, potassio=75.0, cobre=0.06, zinco=0.0, retinol=null, RE=4.0, RAE=2.0, tiamina=0.0, riboflavina=0.0, piridoxina=0.03, niacina=0.0, vitaminaC=2.4, umidade=84.3, lipidios=Lipidios(total=0.0,saturados=0.0,monoinsaturados=0.0,poliinsaturados=0.0), aminoacidos=null),
@@ -164,7 +191,7 @@ class FakeAlimentoDaoPreview : AlimentoDao {
 @Preview(showBackground = true, widthDp = 380, name = "Tela de Busca (Resultados)")
 @Composable
 fun AlimentoSearchScreenContentPreview_ComResultados() {
-    MaterialTheme { // Usando MaterialTheme
+    MaterialTheme {
         AlimentoSearchScreenContent(
             termoBusca = "arr",
             onTermoBuscaChange = { Log.d("Preview", "Busca: $it") },
@@ -175,34 +202,3 @@ fun AlimentoSearchScreenContentPreview_ComResultados() {
         )
     }
 }
-
-@Preview(showBackground = true, widthDp = 380, name = "Tela de Busca (Carregando)")
-@Composable
-fun AlimentoSearchScreenContentPreview_Carregando() {
-    MaterialTheme {
-        AlimentoSearchScreenContent(
-            termoBusca = "arroz",
-            onTermoBuscaChange = {},
-            resultados = emptyList(),
-            isLoading = true, // Simulando carregamento
-            onAlimentoClick = {},
-            onPerformSearch = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 380, name = "Tela de Busca (Sem Resultados)")
-@Composable
-fun AlimentoSearchScreenContentPreview_SemResultados() {
-    MaterialTheme {
-        AlimentoSearchScreenContent(
-            termoBusca = "xyz123",
-            onTermoBuscaChange = {},
-            resultados = emptyList(),
-            isLoading = false,
-            onAlimentoClick = {},
-            onPerformSearch = {}
-        )
-    }
-}
-// --- FIM da Seção para Preview ---

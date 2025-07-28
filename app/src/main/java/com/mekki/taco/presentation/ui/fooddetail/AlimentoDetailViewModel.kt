@@ -1,12 +1,12 @@
-package com.mekki.taco.ui.search // Conforme sua especificação
+package com.mekki.taco.presentation.ui.fooddetail // Conforme sua especificação
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mekki.taco.data.db.dao.AlimentoDao
 import com.mekki.taco.data.db.entity.Alimento
-import com.mekki.taco.util.NutrientCalculator // Importe seu NutrientCalculator
-import com.mekki.taco.util.NutrientesPorPorcao // Importe a data class
+import com.mekki.taco.utils.NutrientCalculator // Importe seu NutrientCalculator
+import com.mekki.taco.utils.NutrientesPorPorcao // Importe a data class
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 

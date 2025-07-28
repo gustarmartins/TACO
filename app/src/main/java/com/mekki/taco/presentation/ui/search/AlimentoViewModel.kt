@@ -1,4 +1,4 @@
-package com.mekki.taco.ui.search // Ou o pacote que você preferir
+package com.mekki.taco.presentation.ui.search // Ou o pacote que você preferir
 
 import android.util.Log
 import androidx.lifecycle.ViewModel

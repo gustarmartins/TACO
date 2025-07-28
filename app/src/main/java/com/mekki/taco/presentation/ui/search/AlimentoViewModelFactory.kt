@@ -1,4 +1,4 @@
-package com.mekki.taco.ui.search
+package com.mekki.taco.presentation.ui.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

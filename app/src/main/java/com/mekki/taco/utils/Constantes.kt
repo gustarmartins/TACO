@@ -10,6 +10,6 @@ object constantes {
     const val PERCENTAGE = "%"
 }
 
-// UI
+// UI usage below
 // Text("Proteína: ${alimento.proteina} ${NutrientUnits.GRAMS}")
 // Text("Cálcio: ${alimento.calcio} ${NutrientUnits.MILLIGRAMS}")
