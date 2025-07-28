@@ -1,4 +1,4 @@
-package com.mekki.taco.util
+package com.mekki.taco.utils
 
 // Define visualmente no aplicativo a unidade de medida a ser utilizada para cada nutriente
 
