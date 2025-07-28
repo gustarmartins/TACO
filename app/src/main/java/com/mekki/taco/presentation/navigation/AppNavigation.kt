@@ -47,9 +47,10 @@ import com.mekki.taco.data.db.dao.ItemDietaDao
 
 // Definição das rotas para evitar strings mágicas
 object AppDestinations {
-    const val MAIN_SCREEN_ROUTE = "main_screen"
-    const val DETAIL_SCREEN_BASE_ROUTE = "detail" // Rota base para detalhes
-    const val DETAIL_SCREEN_WITH_ARG_ROUTE = "$DETAIL_SCREEN_BASE_ROUTE/{alimentoId}"
+    const val HOME_ROUTE = "home"
+    // Detalhes dos Alimentos
+    const val ALIMENTO_DETAIL_BASE_ROUTE = "alimento_detail"
+    const val ALIMENTO_DETAIL_WITH_ARG_ROUTE = "$ALIMENTO_DETAIL_BASE_ROUTE/{alimentoId}"
     const val ARG_ALIMENTO_ID = "alimentoId"
     // Funcionalidade de Dietas
     const val DIET_LIST_ROUTE = "diet_list"
