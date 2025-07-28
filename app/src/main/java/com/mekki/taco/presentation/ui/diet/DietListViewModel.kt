@@ -11,7 +11,10 @@ import com.mekki.taco.data.model.ItemDietaComAlimento
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class DietListViewModel(private val dietaDao: DietaDao) : ViewModel() {
+class DietListViewModel(
+    private val dietaDao: DietaDao,
+    private val itemDietaDao: ItemDietaDao
+) : ViewModel() {
 
     companion object {
         private const val TAG = "DietListViewModel"
@@ -20,47 +23,90 @@ class DietListViewModel(private val dietaDao: DietaDao) : ViewModel() {
     private val _dietas = MutableStateFlow<List<Dieta>>(emptyList())
     val dietas: StateFlow<List<Dieta>> = _dietas.asStateFlow()
 
-    // Poderia ter um estado de loading/erro também, se necessário
-    // private val _isLoading = MutableStateFlow(false)
-    // val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    // --- State for the CreateDietScreen ---
+    private val _nomeNovaDieta = MutableStateFlow("")
+    val nomeNovaDieta: StateFlow<String> = _nomeNovaDieta.asStateFlow()
+
+    // Holds the list of foods added before the diet is saved
+    private val _temporaryFoodList = MutableStateFlow<List<ItemDietaComAlimento>>(emptyList())
+    val temporaryFoodList: StateFlow<List<ItemDietaComAlimento>> = _temporaryFoodList.asStateFlow()
+
+    private val _dietaSalvaEvent = MutableSharedFlow<Unit>()
+    val dietaSalvaEvent: SharedFlow<Unit> = _dietaSalvaEvent.asSharedFlow()
 
     init {
-        Log.d(TAG, "ViewModel inicializado. Buscando todas as dietas...")
+        carregarDietas()
+    }
+
+    private fun carregarDietas() {
         viewModelScope.launch {
-            // _isLoading.value = true // Se tiver estado de loading
             dietaDao.buscarTodasDietas()
-                .catch { exception ->
-                    Log.e(TAG, "Erro ao buscar dietas", exception)
-                    // _isLoading.value = false // Se tiver estado de loading
-                    // Tratar o erro, talvez emitir um estado de erro para a UI
-                }
-                .collect { listaDeDietas ->
-                    Log.d(TAG, "Dietas recebidas do DAO: ${listaDeDietas.size} itens.")
-                    _dietas.value = listaDeDietas
-                    // _isLoading.value = false // Se tiver estado de loading
-                }
+                .catch { e -> Log.e(TAG, "Error loading diets", e) }
+                .collect { _dietas.value = it }
         }
     }
 
-    // Função para adicionar uma nova dieta (exemplo, a lógica de UI para isso virá depois)
-    // Esta função seria chamada, por exemplo, após o usuário preencher um formulário e clicar em salvar.
-    fun adicionarNovaDieta(nomeDieta: String, objetivoCalorias: Double? = null) {
+    fun onNomeNovaDietaChange(nome: String) {
+        _nomeNovaDieta.value = nome
+    }
+
+    // --- Functions for the new Create Diet flow ---
+
+    fun addFoodToTemporaryList(item: ItemDietaComAlimento) {
+        _temporaryFoodList.value += item
+    }
+
+    fun removeTemporaryFoodItem(item: ItemDietaComAlimento) {
+        _temporaryFoodList.value = _temporaryFoodList.value.filter { it.itemDieta.id != item.itemDieta.id }
+    }
+
+    fun salvarNovaDieta() {
         viewModelScope.launch {
+            val nomeLimpo = _nomeNovaDieta.value.trim()
+            if (nomeLimpo.isEmpty() || _temporaryFoodList.value.isEmpty()) {
+                Log.w(TAG, "Attempted to save diet with empty name or food list.")
+                return@launch
+            }
+
+            // 1. Create and save the Dieta to get its ID
             val novaDieta = Dieta(
-                nome = nomeDieta,
-                dataCriacao = System.currentTimeMillis(), // Pega o timestamp atual
-                objetivoCalorias = objetivoCalorias
+                nome = nomeLimpo,
+                dataCriacao = System.currentTimeMillis(),
+                objetivoCalorias = null // Removed as requested
             )
-            val idNovaDieta = dietaDao.inserirDieta(novaDieta)
-            Log.d(TAG, "Nova dieta inserida com ID: $idNovaDieta e nome: $nomeDieta")
-            // O Flow em 'dietas' deve atualizar a lista automaticamente.
+
+            try {
+                val newDietId = dietaDao.inserirDieta(novaDieta) // Assume inserirDieta returns the new ID (Long)
+
+                // 2. Create ItemDieta entities linked to the new diet
+                val itemsParaSalvar = _temporaryFoodList.value.map { tempItem ->
+                    ItemDieta(
+                        dietaId = newDietId.toInt(),
+                        alimentoId = tempItem.alimento.id,
+                        quantidadeGramas = tempItem.itemDieta.quantidadeGramas,
+                        tipoRefeicao = tempItem.itemDieta.tipoRefeicao
+                    )
+                }
+
+                // 3. Save all the items
+                itemDietaDao.insertAll(itemsParaSalvar) // You will need to add this function to your DAO
+
+                Log.d(TAG, "New diet '$nomeLimpo' and ${itemsParaSalvar.size} items saved successfully.")
+                _dietaSalvaEvent.emit(Unit) // Navigate back
+
+                // 4. Clear the state for the next use
+                _nomeNovaDieta.value = ""
+                _temporaryFoodList.value = emptyList()
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error saving new diet and its items", e)
+            }
         }
     }
 
-    fun deletarDieta(dieta: Dieta){
+    fun deletarDieta(dieta: Dieta) {
         viewModelScope.launch {
             dietaDao.deletarDieta(dieta)
-            Log.d(TAG, "Dieta deletada: ${dieta.nome}")
         }
     }
 }
