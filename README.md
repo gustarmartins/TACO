@@ -1,26 +1,45 @@
-Este é um aplicativo Android desenvolvido em Kotlin com Jetpack Compose, utilizando a Tabela Brasileira de Composição de Alimentos (TACO) como sua fonte de dados principal.
+# TACO - App De Nutrição
 
-O projeto foi desenvolvido como uma jornada de aprendizado e aplicação de conceitos modernos de desenvolvimento Android, desde a arquitetura do aplicativo até a construção de uma interface de usuário reativa e funcional, com a assistência de uma IA parceira de codificação do Google.
+Um aplicativo de nutrição e planejamento de dietas feito **por um brasileiro, para brasileiros.**
 
-✨ Funcionalidades ✨
-O aplicativo permite que os usuários explorem e utilizem os dados da Tabela TACO de maneira intuitiva e poderosa. As funcionalidades atuais e planejadas incluem:
+O objetivo deste projeto é fornecer uma ferramenta precisa e fácil de usar para que as pessoas possam entender e gerenciar sua alimentação, seja para planejar uma dieta com "arroz e feijão" ou para simplesmente consultar as informações nutricionais de um "pão de forma" - e o melhor... tudo isso utilizando a:
 
-📊 Consulta Rápida de Alimentos: Uma busca eficiente para encontrar qualquer um dos ~600 alimentos da base de dados.
-🔬 Visualização Detalhada de Nutrientes: Ao selecionar um alimento, o usuário pode ver todos os seus nutrientes.
-⚖️ Calculadora de Porção Customizada: Na tela de detalhes, o usuário pode inserir uma quantidade em gramas e ver todos os valores nutricionais serem recalculados instantaneamente para aquela porção específica.
-🥗 Planejamento de Dietas:
-Criação e listagem de múltiplas dietas personalizadas.
-Adição de alimentos (buscados da base de dados) a uma dieta, especificando a quantidade de cada um.
-Cálculo automático e exibição dos totais de calorias e macronutrientes da dieta.
-🗓️ Diário Alimentar (Em Desenvolvimento): Funcionalidade futura para registrar o que foi consumido em um determinado dia.
+## Tabela TACO
+Este projeto tem como diferencial o uso exclusivo da **Tabela Brasileira de Composição de Alimentos (TACO)** como sua única fonte de dados.
 
-Pré-população do Banco de Dados:
-Um script Python personalizado foi desenvolvido para ler, limpar e mesclar os múltiplos arquivos CSV originais da Tabela TACO.
-O script gera um arquivo taco_preload.sql que é usado pelo RoomDatabase.Callback para popular eficientemente o banco de dados na primeira inicialização do aplicativo.
+A Tabela TACO é um projeto de pesquisa amplo, coordenado pelo Núcleo de Estudos e Pesquisas em Alimentação (NEPA) da UNICAMP. Ela fornece dados detalhados sobre a composição química e nutricional dos principais alimentos consumidos no país, garantindo informações muito mais precisas e relevantes para a nossa população.
 
+Para saber mais sobre a importância e a metodologia da Tabela TACO, consulte os links oficiais:
 
-📝 Agradecimentos
-Agradecimentos ao NEPA-UNICAMP pela disponibilização dos dados da Tabela Brasileira de Composição de Alimentos (TACO), que são a base deste aplicativo.
-Este projeto foi desenvolvido com a assistência de uma IA parceira de codificação do Google.
-📄 Licença
-Este projeto está licenciado sob a Licença MIT. Veja o arquivo LICENSE para mais detalhes.
+- Sobre o Projeto TACO: https://www.nepa.unicamp.br/taco/
+
+- Download da Tabela (PDF): Link para o PDF da 4ª edição
+
+## Funcionalidades Atuais
+O aplicativo está em pleno desenvolvimento. Atualmente, as seguintes funcionalidades estão implementadas:
+
+- Consulta Rápida: Uma busca inteligente na tela inicial para consultar rapidamente os macronutrientes de qualquer alimento da Tabela TACO.
+- Visualização de Alimentos: Tela de detalhes completa para cada alimento, exibindo todas as informações nutricionais disponíveis da tabela.
+- Criação de Dietas: Crie planos alimentares personalizados, nomeando suas dietas.
+- Adição de Alimentos: Adicione alimentos às suas dietas, especificando a quantidade em gramas e o tipo de refeição (café da manhã, almoço, etc.).
+- Dashboard da Dieta: A tela inicial apresenta um dashboard dinâmico com um gráfico de pizza que resume os macronutrientes da sua dieta principal.
+
+## Ferramentas e Tecnologias
+Este aplicativo está sendo construído com tecnologias modernas do ecossistema Android, incluindo:
+
+- Linguagem: Kotlin
+- Interface de Usuário: Jetpack Compose
+- Arquitetura: MVVM (Model-View-ViewModel)
+- Banco de Dados Local: Room
+- Assincronismo: Coroutines & Flow
+
+## 🚀 Próximos Passos
+O projeto continua evoluindo! Os próximos grandes passos incluem:
+
+- [ ] Implementação do "Diário Alimentar" para registro diário.
+
+- [ ] Criação de um perfil de usuário para planos ainda mais personalizados.
+
+- [ ] Disponibilização do arquivo .apk para instalação e testes. (por enquanto, faça o próprio build com git clone e Android Studio)
+
+Este README será atualizado conforme o projeto avança. Sinta-se à vontade para explorar o código!
