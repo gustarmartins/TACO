@@ -74,4 +74,16 @@ interface DietaDao {
      */
     @Query("DELETE FROM dietas")
     suspend fun deletarTodasDietas()
+
+    /**
+     * Fetches a single Dieta and automatically fetches all of its related
+     * ItemDieta and Alimento objects. The @Transaction annotation is crucial
+     * as it ensures this complex query runs as a single atomic operation.
+     */
+    @Transaction
+    @Query("SELECT * FROM dietas WHERE id = :dietId")
+    fun getDietaComItens(dietId: Int): Flow<DietaComItens?> // Return Flow of nullable
+    @Transaction
+    @Query("SELECT * FROM dietas ORDER BY dataCriacao DESC LIMIT 1")
+    fun getLatestDietaWithItems(): Flow<DietaComItens?>
 }
