@@ -1,4 +1,4 @@
-package com.mekki.taco.data.model
+package com.mekki.taco.data.db.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
