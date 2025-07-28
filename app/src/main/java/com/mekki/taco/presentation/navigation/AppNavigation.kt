@@ -51,10 +51,17 @@ object AppDestinations {
     const val DETAIL_SCREEN_BASE_ROUTE = "detail" // Rota base para detalhes
     const val DETAIL_SCREEN_WITH_ARG_ROUTE = "$DETAIL_SCREEN_BASE_ROUTE/{alimentoId}"
     const val ARG_ALIMENTO_ID = "alimentoId"
-
-    // Rotas para funcionalidades futuras (placeholders)
-    const val DIET_PLANNING_ROUTE = "diet_planning"
-    const val DAILY_LOG_ROUTE = "daily_log"
+    // Funcionalidade de Dietas
+    const val DIET_LIST_ROUTE = "diet_list"
+    const val CREATE_DIET_ROUTE = "create_diet"
+    const val DIET_DETAIL_BASE_ROUTE = "diet_item_detail"
+    const val DIET_DETAIL_WITH_ARG_ROUTE = "$DIET_DETAIL_BASE_ROUTE/{dietId}"
+    const val ARG_DIET_ID = "dietId"
+    const val ALIMENTO_SEARCH_BASE_ROUTE = "alimento_search"
+    const val ALIMENTO_SEARCH_WITH_ARG_ROUTE = "$ALIMENTO_SEARCH_BASE_ROUTE/{$ARG_DIET_ID}"
+    // Adicionar um alimento a uma dieta
+    const val ADD_FOOD_TO_DIET_BASE_ROUTE = "add_food_to_diet"
+    const val ADD_FOOD_TO_DIET_WITH_ARGS_ROUTE = "$ADD_FOOD_TO_DIET_BASE_ROUTE/{$ARG_DIET_ID}/{$ARG_ALIMENTO_ID}"
 }
 
 @Composable
