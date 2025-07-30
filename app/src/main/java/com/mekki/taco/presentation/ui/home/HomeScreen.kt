@@ -5,12 +5,11 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.EditCalendar
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,7 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.mekki.taco.data.db.entity.Alimento
 import com.mekki.taco.presentation.ui.components.MacroPieChart
@@ -36,7 +38,7 @@ fun HomeScreen(
     val state by viewModel.state.collectAsState()
 
     Scaffold(
-        topBar = { CenterAlignedTopAppBar(title = { Text("TACO Nutri App") }) }
+        topBar = { CenterAlignedTopAppBar(title = { Text("NutriTACO") }) }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -59,6 +61,9 @@ fun HomeScreen(
 
 @Composable
 fun QuickSearchCard(state: HomeState, viewModel: HomeViewModel) {
+    val keyboardController = LocalSoftwareKeyboardController.current //
+    val focusManager = LocalFocusManager.current // handles search results focus
+
     Card(elevation = CardDefaults.cardElevation(4.dp)) {
         Column(Modifier.padding(16.dp)) {
             OutlinedTextField(
@@ -67,7 +72,23 @@ fun QuickSearchCard(state: HomeState, viewModel: HomeViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Buscar Alimento Rápido") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                singleLine = true
+                singleLine = true,
+                // CLEAN SEARCH ICON
+                trailingIcon = {
+                    if (state.searchTerm.isNotEmpty()) {
+                        IconButton(onClick = {
+                            viewModel.cleanSearch()
+                            focusManager.clearFocus() // hides keyboard
+                        }) {
+                            Icon(Icons.Default.Close, contentDescription = "Limpar Busca")
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                })
             )
 
             // Search results list
@@ -76,12 +97,18 @@ fun QuickSearchCard(state: HomeState, viewModel: HomeViewModel) {
                     CircularProgressIndicator()
                 }
             } else {
-                state.searchResults.forEach { alimento ->
-                    SearchItem(
-                        alimento = alimento,
-                        isExpanded = state.expandedAlimentoId == alimento.id,
-                        onToggle = { viewModel.onAlimentoToggled(alimento.id) }
-                    )
+                // make sure we only display results if search term is not empty
+                if (state.searchTerm.isNotEmpty()) {
+                    state.searchResults.forEach { alimento ->
+                        SearchItem(
+                            alimento = alimento,
+                            isExpanded = state.expandedAlimentoId == alimento.id,
+                            onToggle = {
+                                viewModel.onAlimentoToggled(alimento.id)
+                                keyboardController?.hide()
+                            }
+                        )
+                    }
                 }
             }
         }

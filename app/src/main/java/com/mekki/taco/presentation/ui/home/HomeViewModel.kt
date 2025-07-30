@@ -76,21 +76,26 @@ class HomeViewModel(
     private fun observeSearchTerm() {
         viewModelScope.launch {
             _state.map { it.searchTerm }
-                .debounce(300)
-                .distinctUntilChanged()
-                .collect { term ->
+                .debounce(300) // Waits for user to stop typing
+                .distinctUntilChanged() // Search only if text has changed
+                .flatMapLatest { term ->
                     if (term.length < 2) {
-                        _state.update { it.copy(searchResults = emptyList(), expandedAlimentoId = null) }
+                        flowOf(emptyList())
                     } else {
                         _state.update { it.copy(searchIsLoading = true) }
-                        alimentoDao.buscarAlimentosPorNome(term).collect { results ->
-                            _state.update {
-                                it.copy(
-                                    searchIsLoading = false,
-                                    searchResults = results
-                                )
-                            }
-                        }
+                        alimentoDao.buscarAlimentosPorNome(term)
+                    }
+                }
+                .catch { e ->
+                    // Lidar com possiveis erros do banco de dados
+                    _state.update { it.copy(searchIsLoading = false) }
+                }
+                .collect { results ->
+                    _state.update {
+                        it.copy(
+                            searchIsLoading = false,
+                            searchResults = results
+                        )
                     }
                 }
         }
@@ -108,6 +113,17 @@ class HomeViewModel(
             } else {
                 it.copy(expandedAlimentoId = alimentoId) // Expand new item
             }
+        }
+    }
+
+    // limpar a buscar
+    fun cleanSearch() {
+        _state.update {
+            it.copy(
+                searchTerm = "",
+                searchResults = emptyList(),
+                expandedAlimentoId = null
+            )
         }
     }
 }
