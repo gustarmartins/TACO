@@ -44,6 +44,7 @@ import com.mekki.taco.presentation.ui.home.HomeViewModel
 import com.mekki.taco.presentation.ui.home.HomeViewModelFactory
 import com.mekki.taco.presentation.ui.search.AlimentoSearchScreen
 import com.mekki.taco.data.db.dao.ItemDietaDao
+import com.mekki.taco.presentation.ui.addfood.AddFoodToNewDietScreen
 
 // Definição das rotas para evitar strings mágicas
 object AppDestinations {
@@ -63,6 +64,8 @@ object AppDestinations {
     // Adicionar um alimento a uma dieta
     const val ADD_FOOD_TO_DIET_BASE_ROUTE = "add_food_to_diet"
     const val ADD_FOOD_TO_DIET_WITH_ARGS_ROUTE = "$ADD_FOOD_TO_DIET_BASE_ROUTE/{$ARG_DIET_ID}/{$ARG_ALIMENTO_ID}"
+    const val ALIMENTO_SEARCH_FOR_NEW_DIET_ROUTE = "alimento_search_for_new_diet"
+    const val ADD_FOOD_TO_NEW_DIET_ROUTE = "add_food_to_new_diet/{$ARG_ALIMENTO_ID}"
 }
 
 @Composable
@@ -124,11 +127,44 @@ fun AppNavHost(
             CreateDietScreen(
                 viewModel = dietListViewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToAddFood = {
-                    // TODO: Implement navigation to search and return a result for the temporary list
-                    Log.d("AppNavHost", "Navigate to add food for new diet (not implemented)")
-                }
+                onNavigateToAddFood = { navController.navigate(AppDestinations.ALIMENTO_SEARCH_FOR_NEW_DIET_ROUTE) }
             )
+        }
+
+        composable(route = AppDestinations.ALIMENTO_SEARCH_FOR_NEW_DIET_ROUTE) {
+            val searchFactory = AlimentoViewModelFactory(alimentoDao)
+            val searchViewModel: AlimentoViewModel = viewModel(factory = searchFactory)
+            AlimentoSearchScreen(
+                viewModel = searchViewModel,
+                onAlimentoClick = { alimentoId ->
+                    // Navigates to the screen that adds to the temporary list
+                    navController.navigate("add_food_to_new_diet/$alimentoId")
+                },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // Screen to add a food item to the temporary list in the ViewModel
+        composable(
+            route = AppDestinations.ADD_FOOD_TO_NEW_DIET_ROUTE,
+            arguments = listOf(navArgument(AppDestinations.ARG_ALIMENTO_ID) { type = NavType.IntType })
+        ) { backStackEntry ->
+            val foodId = backStackEntry.arguments?.getInt(AppDestinations.ARG_ALIMENTO_ID)
+            val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(AppDestinations.DIET_LIST_ROUTE) }
+            val dietListViewModel: DietListViewModel = viewModel(viewModelStoreOwner = parentEntry)
+
+            if (foodId != null) {
+                AddFoodToNewDietScreen(
+                    foodId = foodId,
+                    alimentoDao = alimentoDao,
+                    dietListViewModel = dietListViewModel,
+                    onFoodAdded = {
+                        // Pop back twice to return to the CreateDietScreen
+                        navController.popBackStack(AppDestinations.ALIMENTO_SEARCH_FOR_NEW_DIET_ROUTE, true)
+                    },
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
         }
 
         composable(
