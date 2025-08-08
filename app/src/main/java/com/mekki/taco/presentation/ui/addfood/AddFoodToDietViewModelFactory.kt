@@ -1,5 +1,3 @@
-// File: app/src/main/java/com/mekki/taco/presentation/ui/addfood/AddFoodToDietViewModelFactory.kt
-
 package com.mekki.taco.presentation.ui.addfood
 
 import androidx.lifecycle.ViewModel
