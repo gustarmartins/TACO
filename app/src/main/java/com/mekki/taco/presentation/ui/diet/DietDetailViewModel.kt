@@ -1,19 +1,17 @@
-// File: app/src/main/java/com/mekki/taco/presentation/ui/diet/DietDetailViewModel.kt
-
 package com.mekki.taco.presentation.ui.diet
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mekki.taco.data.db.dao.DietaDao
+import com.mekki.taco.data.db.dao.ItemDietaDao
+import com.mekki.taco.data.db.entity.ItemDieta
 import com.mekki.taco.data.model.DietaComItens
 import com.mekki.taco.data.model.ItemDietaComAlimento
 import com.mekki.taco.utils.NutrientCalculator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-// A new data class to hold the calculated nutrient totals
 data class DietTotals(
     val totalKcal: Double = 0.0,
     val totalProtein: Double = 0.0,
@@ -23,7 +21,8 @@ data class DietTotals(
 
 class DietDetailViewModel(
     private val dietId: Int,
-    private val dietaDao: DietaDao
+    private val dietaDao: DietaDao,
+    private val itemDietaDao: ItemDietaDao
 ) : ViewModel() {
 
     // Holds the full diet details, including its name and goal
@@ -80,5 +79,17 @@ class DietDetailViewModel(
             totalCarbs = totalCarbs,
             totalFat = totalFat
         )
+    }
+
+    fun deleteItem(item: ItemDieta) {
+        viewModelScope.launch {
+            itemDietaDao.deletarItemDieta(item)
+        }
+    }
+
+    fun updateItem(item: ItemDieta) {
+        viewModelScope.launch {
+            itemDietaDao.atualizarItemDieta(item)
+        }
     }
 }
