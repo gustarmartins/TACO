@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,7 +34,8 @@ import java.text.DecimalFormat
 fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToDietList: () -> Unit,
-    onNavigateToDiary: () -> Unit // only a placeholder for now
+    onNavigateToDiary: () -> Unit, // only a placeholder for now
+    onNavigateToDetail: (Int) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -48,11 +50,15 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // --- Quick Search Section ---
-            item { QuickSearchCard(state = state, viewModel = viewModel) }
-
+            item {
+                QuickSearchCard(
+                    state = state,
+                    viewModel = viewModel,
+                    onNavigateToDetail = onNavigateToDetail
+                )
+            }
             // --- Main Diet Overview Section ---
             item { DietOverviewCard(state = state, onNavigateToDietList = onNavigateToDietList) }
-
             // --- Navigation Actions Section ---
             item { NavigationActionsCard(onNavigateToDietList, onNavigateToDiary) }
         }
@@ -60,8 +66,12 @@ fun HomeScreen(
 }
 
 @Composable
-fun QuickSearchCard(state: HomeState, viewModel: HomeViewModel) {
-    val keyboardController = LocalSoftwareKeyboardController.current //
+fun QuickSearchCard(
+    state: HomeState,
+    viewModel: HomeViewModel,
+    onNavigateToDetail: (Int) -> Unit
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current // handles search results focus
 
     Card(elevation = CardDefaults.cardElevation(4.dp)) {
@@ -106,7 +116,8 @@ fun QuickSearchCard(state: HomeState, viewModel: HomeViewModel) {
                             onToggle = {
                                 viewModel.onAlimentoToggled(alimento.id)
                                 keyboardController?.hide()
-                            }
+                            },
+                            onNavigateToDetail = onNavigateToDetail
                         )
                     }
                 }
@@ -116,7 +127,12 @@ fun QuickSearchCard(state: HomeState, viewModel: HomeViewModel) {
 }
 
 @Composable
-fun SearchItem(alimento: Alimento, isExpanded: Boolean, onToggle: () -> Unit) {
+fun SearchItem(
+    alimento: Alimento,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    onNavigateToDetail: (Int) -> Unit
+) {
     Column(modifier = Modifier.clickable(onClick = onToggle)) {
         Text(
             text = alimento.nome,
@@ -126,23 +142,33 @@ fun SearchItem(alimento: Alimento, isExpanded: Boolean, onToggle: () -> Unit) {
         )
         // The "balloon" that expands and collapses
         AnimatedVisibility(visible = isExpanded) {
-            MacroInfoBubble(alimento = alimento)
+            MacroInfoBubble(
+                alimento = alimento,
+                modifier = Modifier.clickable { onNavigateToDetail(alimento.id) }
+            )
         }
-        Divider()
+        HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
     }
 }
 
 @Composable
-fun MacroInfoBubble(alimento: Alimento) {
+fun MacroInfoBubble(
+    alimento: Alimento,
+    modifier: Modifier = Modifier
+) {
     val df = DecimalFormat("#.#")
     ElevatedCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
             Text("Valores por 100g", style = MaterialTheme.typography.bodySmall)
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround

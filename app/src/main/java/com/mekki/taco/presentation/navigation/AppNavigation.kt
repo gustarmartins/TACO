@@ -87,6 +87,9 @@ fun AppNavHost(
                 },
                 onNavigateToDiary = {
                     Log.d("AppNavHost", "Navigate to Diary clicked - TODO")
+                },
+                onNavigateToDetail = { alimentoId ->
+                    navController.navigate("${AppDestinations.ALIMENTO_DETAIL_BASE_ROUTE}/$alimentoId")
                 }
             )
         }
@@ -173,7 +176,7 @@ fun AppNavHost(
         ) { backStackEntry ->
             val dietId = backStackEntry.arguments?.getInt(AppDestinations.ARG_DIET_ID)
             if (dietId != null) {
-                val detailFactory = DietDetailViewModelFactory(dietId, dietaDao)
+                val detailFactory = DietDetailViewModelFactory(dietId, dietaDao, itemDietaDao)
                 val detailViewModel: DietDetailViewModel = viewModel(factory = detailFactory)
                 DietDetailScreen(
                     viewModel = detailViewModel,
