@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -86,9 +87,16 @@ fun CreateDietScreen(
 
             // List of foods added so far
             Text("Alimentos Adicionados:", style = MaterialTheme.typography.titleMedium)
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
 
-            if (temporaryFoodList.isEmpty()) {
+            // Lista temporária para o usuário ver os alimentos adicionados ao criar uma dieta
+            val groupedTemporaryList = temporaryFoodList.groupBy {it.itemDieta.tipoRefeicao ?: "Sem Categoria" }
+
+            if (groupedTemporaryList.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -99,18 +107,26 @@ fun CreateDietScreen(
                 }
             } else {
                 LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(temporaryFoodList, key = { it.itemDieta.id }) { foodItem ->
-                        AddedFoodItemRow(
-                            item = foodItem,
-                            onRemove = {
-                                // Add a function to the ViewModel to handle removal
-                                // viewModel.removeTemporaryFoodItem(foodItem)
-                            }
-                        )
+                    groupedTemporaryList.forEach { (mealType, items) ->
+                        item {
+                            Text(
+                                text = mealType,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+                        items(items, key = { it.itemDieta.id }) { foodItem ->
+                            AddedFoodItemRow(
+                                item = foodItem,
+                                onRemove = {
+                                    viewModel.removeTemporaryFoodItem(foodItem)
+                                }
+                            )
+                        }
                     }
                 }
             }
-
 
             // Save Button at the bottom
             Button(
