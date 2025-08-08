@@ -1,5 +1,3 @@
-// File: app/src/main/java/com/mekki/taco/presentation/ui/addfood/AddFoodToDietScreen.kt
-
 package com.mekki.taco.presentation.ui.addfood
 
 import androidx.compose.foundation.layout.*
@@ -14,6 +12,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mekki.taco.utils.NutrientCalculator
+import com.mekki.taco.presentation.ui.components.NutrientRow
 import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,6 +27,9 @@ fun AddFoodToDietScreen(
     // State for the quantity input field
     var quantity by remember { mutableStateOf("") }
     var calculatedCalories by remember { mutableStateOf(0.0) }
+    var calculatedProtein by remember { mutableStateOf(0.0) }
+    var calculatedCarbs by remember { mutableStateOf(0.0) }
+    var calculatedFat by remember { mutableStateOf(0.0) }
     val decimalFormat = remember { DecimalFormat("#.##") }
 
     // Meal type selection state. These should match what you expect in your database.
@@ -49,6 +51,9 @@ fun AddFoodToDietScreen(
         if (food != null && quant != null) {
             val nutrients = NutrientCalculator.calcularNutrientesParaPorcao(food, quant)
             calculatedCalories = nutrients.energiaKcal ?: 0.0
+            calculatedProtein = nutrients.proteina ?: 0.0
+            calculatedCarbs = nutrients.carboidratos ?: 0.0
+            calculatedFat = nutrients.lipidios?.total ?: 0.0
         } else {
             calculatedCalories = 0.0
         }
@@ -105,13 +110,20 @@ fun AddFoodToDietScreen(
                     suffix = { Text("g") }
                 )
 
-                // Display for the calculated calories based on the input quantity
-                if (calculatedCalories > 0) {
-                    Text(
-                        "Calorias na porção: ${decimalFormat.format(calculatedCalories)} kcal",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                // Display nutrients based on the input quantity
+                if (quantity.toDoubleOrNull() != null && quantity.toDoubleOrNull()!! > 0) {
+                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(
+                                "Nutrientes na Porção:",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            NutrientRow("Calorias", calculatedCalories, "kcal")
+                            NutrientRow("Proteínas", calculatedProtein, "g")
+                            NutrientRow("Carboidratos", calculatedCarbs, "g")
+                            NutrientRow("Gorduras", calculatedFat, "g")
+                        }
+                    }
                 }
 
                 // Dropdown menu to select the meal type
@@ -150,7 +162,12 @@ fun AddFoodToDietScreen(
                     onClick = {
                         val quantityValue = quantity.toDoubleOrNull()
                         if (quantityValue != null && quantityValue > 0) {
-                            viewModel.addFoodToDiet(dietId, foodId, quantityValue, selectedMealType) {
+                            viewModel.addFoodToDiet(
+                                dietId,
+                                foodId,
+                                quantityValue,
+                                selectedMealType
+                            ) {
                                 onFoodAdded() // Navigate back after adding
                             }
                         }
