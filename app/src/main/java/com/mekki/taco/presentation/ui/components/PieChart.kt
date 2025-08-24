@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -29,32 +30,48 @@ fun MacroPieChart(
     totalUnit: String
 ) {
     val total = data.sumOf { it.value.toDouble() }.toFloat()
-    if (total == 0f) return // Avoid division by zero
+    if (total <= 0f) return // nothing to draw
 
-    // Calculates angles for slices
     val angles = data.map { 360f * it.value / total }
-    // Animate each slice
-    val animatedProgress = remember { angles.map { Animatable(0f) } }
+    // animate each slice of the pie
+    val animatedProgress = remember(data) { data.map { Animatable(0f) } }
 
-    LaunchedEffect(angles) {
+    LaunchedEffect(data) {
         animatedProgress.forEachIndexed { index, animatable ->
             launch {
                 animatable.animateTo(
-                    targetValue = angles[index],
-                    animationSpec = tween(durationMillis = 800, delayMillis = index * 150)
+                    targetValue = angles.getOrNull(index) ?: 0f,
+                    animationSpec = tween(durationMillis = 700, delayMillis = index * 120)
                 )
             }
         }
     }
 
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Pie Chart with center label
         Box(contentAlignment = Alignment.Center) {
-            Canvas(modifier = Modifier.size(200.dp)) {
+            // size chosen to be compact; caller can override via modifier
+            val canvasSize = 160.dp
+            // captura o color scheme antes de entrarmos no Canvas
+            val backgroundCircleColor = MaterialTheme.colorScheme.surfaceVariant
+
+            Canvas(modifier = Modifier.size(canvasSize)) {
+                val diameter = size.minDimension
+                // stroke thickness relative to diameter (keeps proportions across sizes)
+                val strokeWidth = diameter * 0.14f // ~14% of diameter
+                val radius = diameter / 2f
+
+                // draw subtle background ring (gives "hole" contrast)
+                drawCircle(
+                    color = backgroundCircleColor,
+                    radius = radius - strokeWidth / 2f
+                )
+
                 var startAngle = -90f
                 animatedProgress.forEachIndexed { index, animatable ->
                     drawArc(
@@ -62,34 +79,40 @@ fun MacroPieChart(
                         startAngle = startAngle,
                         sweepAngle = animatable.value,
                         useCenter = false,
-                        style = Stroke(width = 60f, cap = Stroke.DefaultCap)
+                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                     )
                     startAngle += animatable.value
                 }
             }
+
+            // Center label: total + unit
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 val df = DecimalFormat("#.##")
                 Text(
                     text = df.format(totalValue),
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = totalUnit,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        // Column to store the chart's Legend
+        // Legend with absolute values + percent
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            val df = DecimalFormat("#.##")
             data.forEach { slice ->
-                val percentage = if (total > 0) DecimalFormat("#.##").format(100 * slice.value / total) else "0"
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                val percent = if (total > 0) 100f * slice.value / total else 0f
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                ) {
                     Box(
                         modifier = Modifier
                             .size(12.dp)
@@ -97,8 +120,8 @@ fun MacroPieChart(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${slice.label}: $percentage%",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = "${slice.label}: ${df.format(slice.value)} (${df.format(percent)}%)",
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
