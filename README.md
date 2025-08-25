@@ -33,13 +33,13 @@ Este aplicativo está sendo construído com tecnologias modernas do ecossistema 
 - Banco de Dados Local: Room
 - Assincronismo: Coroutines & Flow
 
-## 🚀 Próximos Passos
+## 🚀 Próximos Passos (TODO)
 O projeto continua evoluindo! Os próximos grandes passos incluem:
 
 - [ ] Implementação do "Diário Alimentar" para registro diário.
-
-- [ ] Criação de um perfil de usuário para planos ainda mais personalizados.
-
+- [ ] Criação de um perfil de usuário para planos ainda mais personalizados. (50% concluído)
 - [ ] Disponibilização do arquivo .apk para instalação e testes. (por enquanto, faça o próprio build com git clone e Android Studio)
+- [ ] Melhorar a função de busca
+- [ ] Melhorar a tela de adicionar alimentos a uma dieta (copiar e colar grupo de itens)
 
 Este README será atualizado conforme o projeto avança. Sinta-se à vontade para explorar o código!
