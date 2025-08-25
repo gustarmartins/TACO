@@ -43,8 +43,12 @@ import com.mekki.taco.presentation.ui.home.HomeScreen
 import com.mekki.taco.presentation.ui.home.HomeViewModel
 import com.mekki.taco.presentation.ui.home.HomeViewModelFactory
 import com.mekki.taco.presentation.ui.search.AlimentoSearchScreen
-import com.mekki.taco.data.db.dao.ItemDietaDao
 import com.mekki.taco.presentation.ui.addfood.AddFoodToNewDietScreen
+import com.mekki.taco.data.repository.UserProfileRepository
+import com.mekki.taco.data.db.dao.ItemDietaDao
+import com.mekki.taco.presentation.ui.profile.ProfileViewModel
+import com.mekki.taco.presentation.ui.profile.ProfileViewModelFactory
+import androidx.compose.ui.platform.LocalContext
 
 // Definição das rotas para evitar strings mágicas
 object AppDestinations {
@@ -78,10 +82,18 @@ fun AppNavHost(
     NavHost(navController = navController, startDestination = AppDestinations.HOME_ROUTE) {
 
         composable(route = AppDestinations.HOME_ROUTE) {
+            val context = LocalContext.current
+            val profileRepository = remember { UserProfileRepository(context) }
+            val profileViewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModelFactory(profileRepository)
+            )
+
             val homeFactory = HomeViewModelFactory(dietaDao, alimentoDao)
             val homeViewModel: HomeViewModel = viewModel(factory = homeFactory)
+
             HomeScreen(
-                viewModel = homeViewModel,
+                homeViewModel = homeViewModel,
+                profileViewModel = profileViewModel,
                 onNavigateToDietList = {
                     navController.navigate(AppDestinations.DIET_LIST_ROUTE)
                 },

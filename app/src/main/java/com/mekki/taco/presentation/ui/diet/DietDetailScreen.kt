@@ -102,7 +102,7 @@ fun TotalsCard(totals: DietTotals, goal: Double?) {
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Resumo Nutricional", style = MaterialTheme.typography.titleLarge)
-            Divider()
+            HorizontalDivider()
             // Calories Row
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Calorias", fontWeight = FontWeight.Bold)

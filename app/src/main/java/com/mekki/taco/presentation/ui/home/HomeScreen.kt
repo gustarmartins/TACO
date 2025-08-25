@@ -15,9 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,10 +30,13 @@ import androidx.compose.ui.unit.dp
 import com.mekki.taco.data.db.entity.Alimento
 import com.mekki.taco.presentation.ui.components.MacroPieChart
 import com.mekki.taco.presentation.ui.components.PieChartData
+import com.mekki.taco.presentation.ui.profile.ProfileSheetContent
+import com.mekki.taco.presentation.ui.profile.ProfileViewModel
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 
-// --- Palette (aligned with the "fresh / balanced" approach) ---
-// Theme-friendly, non-appetite-stimulating macros colors
+// --- Palette ---
+// non-appetite-stimulating macros colors OwO
 private val COLOR_PRIMARY_GREEN = Color(0xFF4CAF50) // verde-esmeralda suave (brand)
 private val COLOR_TEAL = Color(0xFF006B6B) // azul petróleo / teal (support)
 private val COLOR_CREME = Color(0xFFF5F0E6) // creme de suporte
@@ -48,12 +50,16 @@ private val COLOR_FAT = Color(0xFFC97C4A)     // warm terracotta for fats (earth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel,
+    homeViewModel: HomeViewModel,
+    profileViewModel: ProfileViewModel,
     onNavigateToDietList: () -> Unit,
     onNavigateToDiary: () -> Unit,
     onNavigateToDetail: (Int) -> Unit
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by homeViewModel.state.collectAsState()
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -61,7 +67,16 @@ fun HomeScreen(
                 title = { Text("NutriTACO", color = MaterialTheme.colorScheme.onPrimary) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { showBottomSheet = true }) {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "Abrir Perfil",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -76,17 +91,34 @@ fun HomeScreen(
             item {
                 QuickSearchCard(
                     state = state,
-                    viewModel = viewModel,
+                    viewModel = homeViewModel,
                     onNavigateToDetail = onNavigateToDetail
                 )
             }
-
             item {
                 DietOverviewCard(state = state, onNavigateToDietList = onNavigateToDietList)
             }
-
             item {
                 NavigationActionsCard(onNavigateToDietList, onNavigateToDiary)
+            }
+        }
+
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = sheetState
+            ) {
+                // Conteúdo da aba, vindo do ProfileSheet.kt
+                ProfileSheetContent(
+                    viewModel = profileViewModel,
+                    onDismiss = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    }
+                )
             }
         }
     }
@@ -287,7 +319,6 @@ fun DietOverviewCard(state: HomeState, onNavigateToDietList: () -> Unit) {
         PieChartData(totals.totalProtein.toFloat(), COLOR_PROTEIN, "Protein"),
         PieChartData(totals.totalFat.toFloat(), COLOR_FAT, "Fat")
     )
-
     // sanitize pie data (ensure non-negative, avoid NaN / zero-sum causing issues in the chart)
     val pieData = rawPieData.map { PieChartData(value = (if (it.value.isFinite()) it.value else 0f).coerceAtLeast(0f), color = it.color, label = it.label) }
     val pieSum = pieData.sumOf { it.value.toDouble() }
@@ -314,43 +345,17 @@ fun DietOverviewCard(state: HomeState, onNavigateToDietList: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
 
             if (state.primaryDiet != null && totals.totalKcal > 0) {
-                // avoid calling the pie chart if the data is invalid or sums to zero
                 if (pieSum > 0.0) {
                     MacroPieChart(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp),
+                            .fillMaxWidth(),
                         data = pieData,
                         totalValue = totals.totalKcal,
                         totalUnit = "kcal"
                     )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Legend with amounts and percentages
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        pieData.forEach { item ->
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Canvas(modifier = Modifier.size(12.dp)) { drawCircle(item.color) }
-                                Spacer(Modifier.height(6.dp))
-                                Text(item.label, style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text("Total: ${totals.totalKcal} kcal", style = MaterialTheme.typography.bodyMedium)
-
-
                 } else {
-                    // fallback when there's no meaningful macro distribution
                     Text("Sem macros para exibir.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(12.dp))
                 }
-
             } else {
                 Text("Crie uma dieta para ver o resumo aqui.", modifier = Modifier.padding(vertical = 24.dp))
             }
@@ -370,13 +375,13 @@ fun NavigationActionsCard(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
             )
-            Divider()
+            HorizontalDivider()
             NavigationActionRow(
                 title = "Gerenciar Dietas",
                 icon = Icons.Default.Book,
                 onClick = onNavigateToDietList
             )
-            Divider(modifier = Modifier.padding(horizontal = 16.dp))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             NavigationActionRow(
                 title = "Diário Alimentar",
                 icon = Icons.Default.EditCalendar,
@@ -412,11 +417,12 @@ fun NavigationActionRow(title: String, icon: ImageVector, onClick: () -> Unit) {
 
 private fun Alimento.subtitleShort(): String {
     val df = DecimalFormat("#.#")
-    return this.categoria
+    // takeIf retorna a categoria somente se ela não estiver em branco.
+    // Se estiver em branco, takeIf retorna null, e o operador Elvis (?:) continua a verificação.
+    return this.categoria.takeIf { it.isNotBlank() }
         ?: this.proteina?.let { "Proteína: ${df.format(it)} g" }
         ?: this.energiaKcal?.let { "${it.toInt()} kcal" }
         ?: this.codigoOriginal
-        ?: ""
 }
 
 @Composable
