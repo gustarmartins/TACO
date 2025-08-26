@@ -144,7 +144,7 @@ fun QuickSearchCard(
                 onValueChange = viewModel::onSearchTermChange,
                 modifier = Modifier
                     .fillMaxWidth(),
-                label = { Text("Buscar Alimento Rápido") },
+                label = { Text("Buscar um alimento") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Pesquisar") },
                 singleLine = true,
                 trailingIcon = {
@@ -173,22 +173,20 @@ fun QuickSearchCard(
                     }
                 }
                 state.searchTerm.isEmpty() -> {
-                    // Helpful hint when empty
                     Column(Modifier.padding(8.dp)) {
-                        Text("Dica: escreva 'arroz', 'peito de frango' ou 'banana' para buscar.", style = MaterialTheme.typography.bodySmall)
+                        Text("Escreva o nome de algum alimento da Tabela TACO para buscar informações.", style = MaterialTheme.typography.bodySmall)
                     }
                 }
                 state.searchResults.isEmpty() -> {
                     Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
                         Spacer(Modifier.height(8.dp))
-                        Text("Nenhum resultado encontrado para '\${state.searchTerm}'.", style = MaterialTheme.typography.bodyMedium)
+                        Text("Nenhum resultado encontrado para '${state.searchTerm}'.", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
                 else -> {
-                    // Use a lazy list for results (keeps better performance when many results exist)
-                    LazyColumn {
-                        items(state.searchResults, key = { it.id }) { alimento ->
+                    Column {
+                        state.searchResults.forEach { alimento ->
                             SearchItem(
                                 alimento = alimento,
                                 isExpanded = state.expandedAlimentoId == alimento.id,
