@@ -45,7 +45,8 @@ private val COLOR_TEXT = Color(0xFF222222)
 // Macronutrient colors (designed to read quickly, accessible and calm)
 private val COLOR_CARBS = Color(0xFFDCC48E)   // soft wheat / carbohydrate (neutral, non-food-stimulating)
 private val COLOR_PROTEIN = Color(0xFF2E7A7A) // deep teal for protein (trustworthy, cool)
-private val COLOR_FAT = Color(0xFFC97C4A)     // warm terracotta for fats (earthy, organic)
+private val COLOR_FAT = Color(0xFFC97C4A) // warm terracotta for fats (earthy, organic)
+private val COLOR_KCAL = Color(0xFFA83C3C)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -283,6 +284,7 @@ fun MacroInfoBubble(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
+                MacroText("Calorias", alimento.energiaKcal, "kcal", COLOR_KCAL)
                 MacroText("Carbs", alimento.carboidratos, "g", COLOR_CARBS)
                 MacroText("Proteínas", alimento.proteina, "g", COLOR_PROTEIN)
                 MacroText("Gorduras", alimento.lipidios?.total, "g", COLOR_FAT)

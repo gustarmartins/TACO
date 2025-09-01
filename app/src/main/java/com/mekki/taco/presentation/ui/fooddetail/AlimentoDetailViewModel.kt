@@ -1,71 +1,111 @@
 package com.mekki.taco.presentation.ui.fooddetail
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mekki.taco.data.db.dao.AlimentoDao
 import com.mekki.taco.data.db.entity.Alimento
-import com.mekki.taco.utils.NutrientCalculator
-import com.mekki.taco.utils.NutrientesPorPorcao
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+
+// State holder for our UI
+data class AlimentoDetailUiState(
+    val isLoading: Boolean = true,
+    val portion: String = "100",
+    val displayAlimento: Alimento? = null // The recalculated Alimento
+)
 
 class AlimentoDetailViewModel(
-    private val alimentoId: Int,
-    private val alimentoDao: AlimentoDao
+    alimentoId: Int,
+    alimentoDao: AlimentoDao
 ) : ViewModel() {
 
-    companion object {
-        private const val TAG = "AlimentoDetailVM"
-    }
+    private val _portion = MutableStateFlow("100")
+    private val _baseAlimento: StateFlow<Alimento?> = alimentoDao.buscarAlimentoPorId(alimentoId)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
-    // Armazena o alimento base (valores por 100g)
-    private val _alimentoBase = MutableStateFlow<Alimento?>(null)
-    // val alimentoBase: StateFlow<Alimento?> = _alimentoBase.asStateFlow() // Pode ser útil expor
-
-    // Quantidade em gramas selecionada pelo usuário
-    private val _quantidadeSelecionadaGramas = MutableStateFlow(100.0)
-    val quantidadeSelecionadaGramas: StateFlow<Double> = _quantidadeSelecionadaGramas.asStateFlow()
-
-    // Estado de carregamento do alimento base
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    // Nutrientes calculados para a porção selecionada
-    val nutrientesParaPorcao: StateFlow<NutrientesPorPorcao?> =
-        combine(_alimentoBase, _quantidadeSelecionadaGramas) { alimento, quantidade ->
-            alimento?.let {
-                NutrientCalculator.calcularNutrientesParaPorcao(it, quantidade)
+    val uiState: StateFlow<AlimentoDetailUiState> =
+        combine(_baseAlimento, _portion) { base, portion ->
+            if (base == null) {
+                AlimentoDetailUiState(isLoading = true)
+            } else {
+                val newPortion = portion.toDoubleOrNull() ?: 100.0
+                val ratio = newPortion / 100.0
+                val recalculatedAlimento = base.copy(
+                    // General
+                    energiaKcal = base.energiaKcal?.times(ratio),
+                    energiaKj = base.energiaKj?.times(ratio),
+                    umidade = base.umidade?.times(ratio),
+                    cinzas = base.cinzas?.times(ratio),
+                    // Macros
+                    proteina = base.proteina?.times(ratio),
+                    carboidratos = base.carboidratos?.times(ratio),
+                    fibraAlimentar = base.fibraAlimentar?.times(ratio),
+                    colesterol = base.colesterol?.times(ratio),
+                    lipidios = base.lipidios?.copy(
+                        total = base.lipidios.total?.times(ratio),
+                        saturados = base.lipidios.saturados?.times(ratio),
+                        monoinsaturados = base.lipidios.monoinsaturados?.times(ratio),
+                        poliinsaturados = base.lipidios.poliinsaturados?.times(ratio)
+                    ),
+                    // Minerals
+                    calcio = base.calcio?.times(ratio),
+                    magnesio = base.magnesio?.times(ratio),
+                    manganes = base.manganes?.times(ratio),
+                    fosforo = base.fosforo?.times(ratio),
+                    ferro = base.ferro?.times(ratio),
+                    sodio = base.sodio?.times(ratio),
+                    potassio = base.potassio?.times(ratio),
+                    cobre = base.cobre?.times(ratio),
+                    zinco = base.zinco?.times(ratio),
+                    // Vitamins
+                    retinol = base.retinol?.times(ratio),
+                    RE = base.RE?.times(ratio),
+                    RAE = base.RAE?.times(ratio),
+                    tiamina = base.tiamina?.times(ratio),
+                    riboflavina = base.riboflavina?.times(ratio),
+                    piridoxina = base.piridoxina?.times(ratio),
+                    niacina = base.niacina?.times(ratio),
+                    vitaminaC = base.vitaminaC?.times(ratio),
+                    // Amino Acids
+                    aminoacidos = base.aminoacidos?.copy(
+                        triptofano = base.aminoacidos.triptofano?.times(ratio),
+                        treonina = base.aminoacidos.treonina?.times(ratio),
+                        isoleucina = base.aminoacidos.isoleucina?.times(ratio),
+                        leucina = base.aminoacidos.leucina?.times(ratio),
+                        lisina = base.aminoacidos.lisina?.times(ratio),
+                        metionina = base.aminoacidos.metionina?.times(ratio),
+                        cistina = base.aminoacidos.cistina?.times(ratio),
+                        fenilalanina = base.aminoacidos.fenilalanina?.times(ratio),
+                        tirosina = base.aminoacidos.tirosina?.times(ratio),
+                        valina = base.aminoacidos.valina?.times(ratio),
+                        arginina = base.aminoacidos.arginina?.times(ratio),
+                        histidina = base.aminoacidos.histidina?.times(ratio),
+                        alanina = base.aminoacidos.alanina?.times(ratio),
+                        acidoAspartico = base.aminoacidos.acidoAspartico?.times(ratio),
+                        acidoGlutamico = base.aminoacidos.acidoGlutamico?.times(ratio),
+                        glicina = base.aminoacidos.glicina?.times(ratio),
+                        prolina = base.aminoacidos.prolina?.times(ratio),
+                        serina = base.aminoacidos.serina?.times(ratio)
+                    )
+                )
+                AlimentoDetailUiState(
+                    isLoading = false,
+                    portion = portion,
+                    displayAlimento = recalculatedAlimento
+                )
             }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = AlimentoDetailUiState()
+        )
 
-    init {
-        Log.d(TAG, "ViewModel inicializado para alimentoId: $alimentoId")
-        viewModelScope.launch {
-            _isLoading.value = true
-            alimentoDao.buscarAlimentoPorId(alimentoId)
-                .catch { e ->
-                    Log.e(TAG, "Erro ao buscar alimento por ID $alimentoId", e)
-                    _isLoading.value = false
-                    _alimentoBase.value = null
-                }
-                .collectLatest { fetchedAlimento ->
-                    Log.d(TAG, "Alimento base (${fetchedAlimento?.nome}) recebido do DAO.")
-                    _alimentoBase.value = fetchedAlimento
-                    _isLoading.value = false // O carregamento inicial do alimento base terminou
-                }
-        }
-    }
-
-    fun atualizarQuantidade(novaQuantidadeInput: String) {
-        val novaQuantidade = novaQuantidadeInput.toDoubleOrNull()
-        if (novaQuantidade != null && novaQuantidade > 0) {
-            _quantidadeSelecionadaGramas.value = novaQuantidade
-            Log.d(TAG, "Quantidade atualizada para: $novaQuantidade g")
-        } else {
-            Log.d(TAG, "Tentativa de atualizar para quantidade inválida: $novaQuantidadeInput")
-            // Opcional: resetar para 100g ou manter o valor anterior se a entrada for inválida
-            _quantidadeSelecionadaGramas.value = 100.0 // Exemplo de reset
+    fun updatePortion(newPortion: String) {
+        if (newPortion.all { it.isDigit() } && newPortion.length <= 5) {
+            _portion.value = newPortion
         }
     }
 }

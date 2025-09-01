@@ -13,8 +13,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -114,11 +116,19 @@ fun AppNavHost(
             if (alimentoId != null) {
                 val detailViewModelFactory = AlimentoDetailViewModelFactory(alimentoId, alimentoDao)
                 val alimentoDetailViewModel: AlimentoDetailViewModel = viewModel(factory = detailViewModelFactory)
+
+                val uiState by alimentoDetailViewModel.uiState.collectAsState()
+
                 AlimentoDetailScreen(
-                    viewModel = alimentoDetailViewModel,
+                    uiState = uiState,
+                    onPortionChange = { newPortion ->
+                        alimentoDetailViewModel.updatePortion(newPortion)
+                    },
                     onNavigateBack = { navController.popBackStack() }
                 )
-            } else { Text("ID do alimento inválido.") }
+            } else {
+                Text("ID do alimento inválido.")
+            }
         }
 
         composable(route = AppDestinations.DIET_LIST_ROUTE) {
@@ -259,7 +269,10 @@ fun PlaceholderScreen(screenName: String, modifier: Modifier = Modifier, onNavig
                 navigationIcon = {
                     onNavigateBack?.let { navBack ->
                         IconButton(onClick = navBack) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Voltar"
+                            )
                         }
                     }
                 }
