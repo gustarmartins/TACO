@@ -2,20 +2,17 @@ package com.mekki.taco.presentation.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,17 +32,11 @@ import com.mekki.taco.presentation.ui.profile.ProfileViewModel
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 
-// --- Palette ---
-// non-appetite-stimulating macros colors OwO
-private val COLOR_PRIMARY_GREEN = Color(0xFF4CAF50) // verde-esmeralda suave (brand)
-private val COLOR_TEAL = Color(0xFF006B6B) // azul petróleo / teal (support)
-private val COLOR_CREME = Color(0xFFF5F0E6) // creme de suporte
+// Palette
 private val COLOR_TEXT = Color(0xFF222222)
-
-// Macronutrient colors (designed to read quickly, accessible and calm)
-private val COLOR_CARBS = Color(0xFFDCC48E)   // soft wheat / carbohydrate (neutral, non-food-stimulating)
-private val COLOR_PROTEIN = Color(0xFF2E7A7A) // deep teal for protein (trustworthy, cool)
-private val COLOR_FAT = Color(0xFFC97C4A) // warm terracotta for fats (earthy, organic)
+private val COLOR_CARBS = Color(0xFFDCC48E)
+private val COLOR_PROTEIN = Color(0xFF2E7A7A)
+private val COLOR_FAT = Color(0xFFC97C4A)
 private val COLOR_KCAL = Color(0xFFA83C3C)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,69 +49,52 @@ fun HomeScreen(
     onNavigateToDetail: (Int) -> Unit
 ) {
     val state by homeViewModel.state.collectAsState()
+
+    // A lógica para a BottomSheet (perfil) deve ser movida para a MainActivity
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("NutriTACO", color = MaterialTheme.colorScheme.onPrimary) },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                actions = {
-                    IconButton(onClick = { showBottomSheet = true }) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Abrir Perfil",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()) // Permite rolagem apenas se o conteúdo transbordar
+            .padding(16.dp)
+    ) {
+        // Observação: O TopAppBar com o botão de perfil agora vive na MainActivity.
+        // Se precisar do botão de perfil aqui, a lógica para `showBottomSheet`
+        // precisará ser "hoisted" (elevada) para a MainActivity.
+
+        QuickSearchCard(
+            state = state,
+            viewModel = homeViewModel,
+            onNavigateToDetail = onNavigateToDetail
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        DietOverviewCard(state = state, onNavigateToDietList = onNavigateToDietList)
+        Spacer(modifier = Modifier.height(24.dp))
+        NavigationActionsCard(onNavigateToDietList, onNavigateToDiary)
+
+        // Este Spacer flexível empurra to-do o conteúdo para cima em telas altas,
+        // ocupando o espaço vazio e prevenindo a rolagem desnecessária.
+        Spacer(Modifier.weight(1f))
+    }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState
+        ) {
+            ProfileSheetContent(
+                viewModel = profileViewModel,
+                onDismiss = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            showBottomSheet = false
+                        }
                     }
                 }
             )
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            item {
-                QuickSearchCard(
-                    state = state,
-                    viewModel = homeViewModel,
-                    onNavigateToDetail = onNavigateToDetail
-                )
-            }
-            item {
-                DietOverviewCard(state = state, onNavigateToDietList = onNavigateToDietList)
-            }
-            item {
-                NavigationActionsCard(onNavigateToDietList, onNavigateToDiary)
-            }
-        }
-
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showBottomSheet = false },
-                sheetState = sheetState
-            ) {
-                // Conteúdo da aba, vindo do ProfileSheet.kt
-                ProfileSheetContent(
-                    viewModel = profileViewModel,
-                    onDismiss = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                showBottomSheet = false
-                            }
-                        }
-                    }
-                )
-            }
         }
     }
 }
@@ -300,7 +274,7 @@ fun MacroInfoBubble(
                     Text("Adicionar")
                 }
 
-                TextButton(onClick = { /* navigate to details handled by parent clickable */ }) {
+                TextButton(onClick = { }) {
                     Icon(Icons.Default.Info, contentDescription = "Detalhes")
                     Spacer(Modifier.width(8.dp))
                     Text("Detalhes")
@@ -313,13 +287,11 @@ fun MacroInfoBubble(
 @Composable
 fun DietOverviewCard(state: HomeState, onNavigateToDietList: () -> Unit) {
     val totals = state.dietTotals
-    // build pie data and sanitize values to avoid rendering crashes
     val rawPieData = listOf(
         PieChartData(totals.totalCarbs.toFloat(), COLOR_CARBS, "Carbs"),
         PieChartData(totals.totalProtein.toFloat(), COLOR_PROTEIN, "Protein"),
         PieChartData(totals.totalFat.toFloat(), COLOR_FAT, "Fat")
     )
-    // sanitize pie data (ensure non-negative, avoid NaN / zero-sum causing issues in the chart)
     val pieData = rawPieData.map { PieChartData(value = (if (it.value.isFinite()) it.value else 0f).coerceAtLeast(0f), color = it.color, label = it.label) }
     val pieSum = pieData.sumOf { it.value.toDouble() }
 
@@ -417,8 +389,6 @@ fun NavigationActionRow(title: String, icon: ImageVector, onClick: () -> Unit) {
 
 private fun Alimento.subtitleShort(): String {
     val df = DecimalFormat("#.#")
-    // takeIf retorna a categoria somente se ela não estiver em branco.
-    // Se estiver em branco, takeIf retorna null, e o operador Elvis (?:) continua a verificação.
     return this.categoria.takeIf { it.isNotBlank() }
         ?: this.proteina?.let { "Proteína: ${df.format(it)} g" }
         ?: this.energiaKcal?.let { "${it.toInt()} kcal" }

@@ -11,14 +11,13 @@ import com.mekki.taco.utils.NutrientCalculator
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-// Updated State to track the expanded item's ID
 data class HomeState(
     val primaryDiet: DietaComItens? = null,
     val dietTotals: DietTotals = DietTotals(),
     val searchTerm: String = "",
     val searchIsLoading: Boolean = false,
     val searchResults: List<Alimento> = emptyList(),
-    val expandedAlimentoId: Int? = null // This replaces selectedAlimento
+    val expandedAlimentoId: Int? = null
 )
 
 class HomeViewModel(
@@ -115,7 +114,7 @@ class HomeViewModel(
         }
     }
 
-    // limpar a buscar
+    // limpar a busca
     fun cleanSearch() {
         _state.update {
             it.copy(

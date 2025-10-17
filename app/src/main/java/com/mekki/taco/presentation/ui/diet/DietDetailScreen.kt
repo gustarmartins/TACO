@@ -1,29 +1,23 @@
 package com.mekki.taco.presentation.ui.diet
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.ui.text.input.KeyboardType
 import com.mekki.taco.data.db.entity.ItemDieta
 import com.mekki.taco.data.model.ItemDietaComAlimento
 import com.mekki.taco.presentation.ui.components.NutrientRow
@@ -33,44 +27,54 @@ import java.text.DecimalFormat
 @Composable
 fun DietDetailScreen(
     viewModel: DietDetailViewModel,
-    onNavigateBack: () -> Unit,
-    onNavigateToAddFood: () -> Unit
+    onNavigateToAddFood: () -> Unit,
+    onTitleChange: (String) -> Unit,
+    onFabChange: (@Composable (() -> Unit)?) -> Unit
 ) {
     val dietDetails by viewModel.dietDetails.collectAsState()
     val groupedItems by viewModel.groupedItems.collectAsState()
     val totals by viewModel.dietTotals.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(dietDetails?.dieta?.nome ?: "Carregando Dieta...") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
+    LaunchedEffect(dietDetails?.dieta?.nome) {
+        val title = dietDetails?.dieta?.nome
+        if (title != null) {
+            onTitleChange(title)
+        } else {
+            onTitleChange("Carregando Dieta...")
+        }
+    }
+
+    // Efeito para configurar e limpar o FAB
+    DisposableEffect(Unit) {
+        // Configura o FAB quando a tela entra na composição
+        onFabChange {
             FloatingActionButton(onClick = onNavigateToAddFood) {
                 Icon(Icons.Default.Add, contentDescription = "Adicionar Alimento")
             }
         }
-    ) { paddingValues ->
+
+        // Limpa o FAB quando a tela sai da composição
+        onDispose {
+            onFabChange(null)
+        }
+    }
+
+    if (dietDetails == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Header Card with Totals
+            // header com os totais
             item {
                 TotalsCard(totals = totals, goal = dietDetails?.dieta?.objetivoCalorias)
             }
 
-            // Display food items grouped by meal
-            if (groupedItems.isEmpty() && dietDetails != null) {
+            if (groupedItems.isEmpty()) {
                 item {
                     Text(
                         text = "Esta dieta ainda não tem alimentos. Toque no botão '+' para começar a adicionar.",

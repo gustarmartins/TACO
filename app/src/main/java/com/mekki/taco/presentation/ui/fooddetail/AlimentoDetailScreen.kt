@@ -28,43 +28,38 @@ import com.mekki.taco.data.db.entity.Lipidios
 fun AlimentoDetailScreen(
     uiState: AlimentoDetailUiState,
     onPortionChange: (String) -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onTitleChange: (String) -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(uiState.displayAlimento?.nome ?: "Carregando...", maxLines = 1) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, "Voltar")
-                    }
-                }
-            )
+    LaunchedEffect(uiState.displayAlimento) {
+        uiState.displayAlimento?.let {
+            onTitleChange(it.nome)
         }
-    ) { paddingValues ->
-        if (uiState.isLoading || uiState.displayAlimento == null) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (uiState.isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else {
-            val alimento = uiState.displayAlimento
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(vertical = 16.dp)
-            ) {
-                item { PrimaryInfoCard(alimento.energiaKcal, uiState.portion, onPortionChange) }
-                item { MacronutrientsCard(alimento.proteina, alimento.carboidratos, alimento.lipidios) }
-                item { GeneralInfoCard(alimento.fibraAlimentar, alimento.colesterol, alimento.cinzas, alimento.umidade) }
-                item { MineralsCard(alimento) }
-                item { VitaminsCard(alimento) }
-                item { AminoAcidsCard(alimento.aminoacidos) }
+            uiState.displayAlimento?.let { alimento ->
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    item { PrimaryInfoCard(alimento.energiaKcal, uiState.portion, onPortionChange) }
+                    item { MacronutrientsCard(alimento.proteina, alimento.carboidratos, alimento.lipidios) }
+                    item { GeneralInfoCard(alimento.fibraAlimentar, alimento.colesterol, alimento.cinzas, alimento.umidade) }
+                    item { MineralsCard(alimento) }
+                    item { VitaminsCard(alimento) }
+                    item { AminoAcidsCard(alimento.aminoacidos) }
+                }
+            } ?: run {
+                Text("Erro ao carregar o alimento.", modifier = Modifier.align(Alignment.Center))
             }
         }
     }
 }
-
-// --- CARDS ---
 
 @Composable
 fun PrimaryInfoCard(calorias: Double?, portion: String, onPortionChange: (String) -> Unit) {
@@ -80,7 +75,6 @@ fun PrimaryInfoCard(calorias: Double?, portion: String, onPortionChange: (String
     }
 }
 
-// ======================= MODIFIED COMPOSABLE START =======================
 @Composable
 fun MacronutrientsCard(proteinas: Double?, carboidratos: Double?, lipidios: Lipidios?) {
     var isFatDetailExpanded by remember { mutableStateOf(false) }
@@ -97,7 +91,7 @@ fun MacronutrientsCard(proteinas: Double?, carboidratos: Double?, lipidios: Lipi
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
-            // This Row is now always visible
+            // This Row is always visible
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -134,7 +128,6 @@ fun MacronutrientsCard(proteinas: Double?, carboidratos: Double?, lipidios: Lipi
         }
     }
 }
-// ======================= MODIFIED COMPOSABLE END =======================
 
 @Composable
 fun GeneralInfoCard(fibra: Double?, colesterol: Double?, cinzas: Double?, umidade: Double?) {
@@ -202,8 +195,6 @@ fun AminoAcidsCard(aminoacidos: Aminoacidos?) {
         DetailRow("Serina", aminoacidos.serina, "mg")
     }
 }
-
-// --- HELPER COMPOSABLES ---
 
 @Composable
 fun EditablePortion(portion: String, onPortionChange: (String) -> Unit) {
@@ -291,14 +282,13 @@ fun InfoColumn(value: String, unit: String, label: String) {
     }
 }
 
-// ======================= MODIFIED COMPOSABLE START =======================
 @Composable
 fun MacroStat(
     label: String,
     amount: Double,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    trailingIcon: (@Composable () -> Unit)? = null // Optional icon for the label
+    trailingIcon: (@Composable () -> Unit)? = null
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -314,4 +304,3 @@ fun MacroStat(
         }
     }
 }
-// ======================= MODIFIED COMPOSABLE END =======================

@@ -27,11 +27,6 @@ import com.mekki.taco.data.db.entity.Lipidios
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-/**
- * This is the main, stateful screen composable.
- * It connects the ViewModel to the UI content and handles navigation.
- * You will call this from your AppNavHost.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlimentoSearchScreen(
@@ -45,21 +40,8 @@ fun AlimentoSearchScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Buscar Alimento") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        // Call the stateless content composable, passing down the state and event handlers
+
         AlimentoSearchScreenContent(
-            modifier = Modifier.padding(paddingValues),
             termoBusca = termoBusca,
             onTermoBuscaChange = { viewModel.onTermoBuscaChange(it) },
             resultados = resultados,
@@ -68,13 +50,8 @@ fun AlimentoSearchScreen(
             onPerformSearch = { keyboardController?.hide() }
         )
     }
-}
 
 
-/**
- * This is the stateless composable that draws the UI.
- * It receives all data and callbacks as parameters, making it easy to preview.
- */
 @Composable
 private fun AlimentoSearchScreenContent(
     modifier: Modifier = Modifier,

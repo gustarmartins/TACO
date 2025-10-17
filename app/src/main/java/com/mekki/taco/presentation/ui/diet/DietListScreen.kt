@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,53 +29,40 @@ import java.util.Locale
 @Composable
 fun DietListScreen(
     viewModel: DietListViewModel,
-    onNavigateBack: () -> Unit,
     onNavigateToCreateDiet: () -> Unit,
-    onNavigateToDietDetail: (dietId: Int) -> Unit
+    onNavigateToDietDetail: (dietId: Int) -> Unit,
+    onFabChange: (@Composable (() -> Unit)?) -> Unit
 ) {
     val dietas by viewModel.dietas.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Minhas Dietas") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
+    DisposableEffect(Unit) {
+        onFabChange {
             FloatingActionButton(onClick = onNavigateToCreateDiet) {
                 Icon(Icons.Filled.Add, contentDescription = "Criar Nova Dieta")
             }
         }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            if (dietas.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        "Nenhuma dieta criada ainda.\nClique no '+' para adicionar!",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(items = dietas, key = { dieta -> dieta.id }) { dieta ->
-                        DietListItem(
-                            dieta = dieta,
-                            onClick = { onNavigateToDietDetail(dieta.id) },
-                            onDeleteClick = { viewModel.deletarDieta(dieta) }
-                        )
-                    }
-                }
+        // Limpa o FAB quando a tela sai
+        onDispose {
+            onFabChange(null)
+        }
+    }
+
+    if (dietas.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                "Nenhuma dieta criada ainda.\nClique no '+' para adicionar!",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    } else {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(items = dietas, key = { dieta -> dieta.id }) { dieta ->
+                DietListItem(
+                    dieta = dieta,
+                    onClick = { onNavigateToDietDetail(dieta.id) },
+                    onDeleteClick = { viewModel.deletarDieta(dieta) }
+                )
             }
         }
     }
@@ -88,14 +76,20 @@ fun DietListItem(
     onDeleteClick: () -> Unit
 ) {
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+            Column(modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)) {
                 Text(dieta.nome, style = MaterialTheme.typography.titleMedium)
                 Text(
                     "Criada em: ${formatarDataTimestamp(dieta.dataCriacao)}",
@@ -106,7 +100,11 @@ fun DietListItem(
                 }
             }
             IconButton(onClick = onDeleteClick) {
-                Icon(Icons.Filled.Delete, contentDescription = "Deletar Dieta", tint = MaterialTheme.colorScheme.error)
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = "Deletar Dieta",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
     }
