@@ -13,9 +13,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
@@ -23,12 +26,14 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.mekki.taco.data.db.entity.Alimento
 import com.mekki.taco.presentation.ui.components.MacroPieChart
 import com.mekki.taco.presentation.ui.components.PieChartData
 import com.mekki.taco.presentation.ui.profile.ProfileSheetContent
 import com.mekki.taco.presentation.ui.profile.ProfileViewModel
+import com.mekki.taco.utils.NutrientCalculator
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 
@@ -49,8 +54,6 @@ fun HomeScreen(
     onNavigateToDetail: (Int) -> Unit
 ) {
     val state by homeViewModel.state.collectAsState()
-
-    // A lógica para a BottomSheet (perfil) deve ser movida para a MainActivity
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -58,12 +61,9 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()) // Permite rolagem apenas se o conteúdo transbordar
+            .verticalScroll(rememberScrollState()) // rola apenas se o conteúdo transbordar
             .padding(16.dp)
     ) {
-        // Observação: O TopAppBar com o botão de perfil agora vive na MainActivity.
-        // Se precisar do botão de perfil aqui, a lógica para `showBottomSheet`
-        // precisará ser "hoisted" (elevada) para a MainActivity.
 
         QuickSearchCard(
             state = state,
@@ -75,8 +75,9 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
         NavigationActionsCard(onNavigateToDietList, onNavigateToDiary)
 
-        // Este Spacer flexível empurra to-do o conteúdo para cima em telas altas,
-        // ocupando o espaço vazio e prevenindo a rolagem desnecessária.
+        // Este Spacer flexível empurra o conteúdo para cima em telas altas,
+        // ocupando o espaço vazio e prevenindo a rolagem desnecessária;
+        // Mas aparentemente não está funcionando...
         Spacer(Modifier.weight(1f))
     }
 
@@ -169,7 +170,9 @@ fun QuickSearchCard(
                                     viewModel.onAlimentoToggled(alimento.id)
                                     keyboardController?.hide()
                                 },
-                                onNavigateToDetail = onNavigateToDetail
+                                onNavigateToDetail = onNavigateToDetail,
+                                currentAmount = state.quickAddAmount,
+                                onAmountChange = viewModel::onQuickAddAmountChange
                             )
                         }
                     }
@@ -184,7 +187,9 @@ fun SearchItem(
     alimento: Alimento,
     isExpanded: Boolean,
     onToggle: () -> Unit,
-    onNavigateToDetail: (Int) -> Unit
+    onNavigateToDetail: (Int) -> Unit,
+    currentAmount: String,
+    onAmountChange: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -223,50 +228,114 @@ fun SearchItem(
         AnimatedVisibility(visible = isExpanded) {
             MacroInfoBubble(
                 alimento = alimento,
-                modifier = Modifier
-                    .clickable { onNavigateToDetail(alimento.id) }
-                    .padding(start = 8.dp, end = 8.dp)
+                currentAmount = currentAmount,
+                onAmountChange = onAmountChange,
+                onNavigateToDetail = { onNavigateToDetail(alimento.id) }
             )
         }
 
-        Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
+        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
     }
 }
 
 @Composable
 fun MacroInfoBubble(
     alimento: Alimento,
+    currentAmount: String,
+    onAmountChange: (String) -> Unit,
+    onNavigateToDetail: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val df = DecimalFormat("#.#")
+    var isInEditMode by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // Converte o valor do texto para Double, tratando casos de erro
+    val amountDouble = currentAmount.toDoubleOrNull() ?: 0.0
+
+    // Recalcula os nutrientes apenas quando o alimento ou a quantidade mudam
+    val calculatedNutrients = remember(alimento, amountDouble) {
+        NutrientCalculator.calcularNutrientesParaPorcao(alimento, amountDouble)
+    }
+
+    // Foca o TextField automaticamente quando entra no modo de edição
+    LaunchedEffect(isInEditMode) {
+        if (isInEditMode) {
+            focusRequester.requestFocus()
+        }
+    }
+
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 12.dp),
+            .padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
+            .clickable(onClick = onNavigateToDetail),
         shape = RoundedCornerShape(10.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Valores por 100g", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.weight(1f))
-                Text(alimento.categoria ?: "-", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                if (isInEditMode) {
+                    OutlinedTextField(
+                        value = currentAmount,
+                        onValueChange = onAmountChange,
+                        modifier = Modifier
+                            .weight(1f)
+                            .focusRequester(focusRequester),
+                        label = { Text("Quantidade (g)") },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(onDone = {
+                            isInEditMode = false
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                        }),
+                        singleLine = true
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { isInEditMode = true },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Valores por ${currentAmount}g",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Editar quantidade",
+                            modifier = Modifier.size(16.dp).padding(start = 4.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(alimento.categoria, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                MacroText("Calorias", alimento.energiaKcal, "kcal", COLOR_KCAL)
-                MacroText("Carbs", alimento.carboidratos, "g", COLOR_CARBS)
-                MacroText("Proteínas", alimento.proteina, "g", COLOR_PROTEIN)
-                MacroText("Gorduras", alimento.lipidios?.total, "g", COLOR_FAT)
+                MacroText("Calorias", calculatedNutrients.energiaKcal, "kcal", COLOR_KCAL)
+                MacroText("Carbs", calculatedNutrients.carboidratos, "g", COLOR_CARBS)
+                MacroText("Proteínas", calculatedNutrients.proteina, "g", COLOR_PROTEIN)
+                MacroText("Gorduras", calculatedNutrients.lipidios?.total, "g", COLOR_FAT)
             }
 
             Spacer(Modifier.height(12.dp))
 
-            // Quick action row
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 TextButton(onClick = {}) {
                     Icon(Icons.Default.AddCircle, contentDescription = "Adicionar à dieta")
@@ -274,7 +343,7 @@ fun MacroInfoBubble(
                     Text("Adicionar")
                 }
 
-                TextButton(onClick = { }) {
+                TextButton(onClick = onNavigateToDetail) {
                     Icon(Icons.Default.Info, contentDescription = "Detalhes")
                     Spacer(Modifier.width(8.dp))
                     Text("Detalhes")

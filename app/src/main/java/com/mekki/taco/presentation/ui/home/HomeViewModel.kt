@@ -8,6 +8,8 @@ import com.mekki.taco.data.db.entity.Alimento
 import com.mekki.taco.data.model.DietaComItens
 import com.mekki.taco.presentation.ui.diet.DietTotals
 import com.mekki.taco.utils.NutrientCalculator
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -17,7 +19,8 @@ data class HomeState(
     val searchTerm: String = "",
     val searchIsLoading: Boolean = false,
     val searchResults: List<Alimento> = emptyList(),
-    val expandedAlimentoId: Int? = null
+    val expandedAlimentoId: Int? = null,
+    val quickAddAmount: String = "100"
 )
 
 class HomeViewModel(
@@ -71,6 +74,7 @@ class HomeViewModel(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     private fun observeSearchTerm() {
         viewModelScope.launch {
             _state.map { it.searchTerm }
@@ -103,15 +107,20 @@ class HomeViewModel(
         _state.update { it.copy(searchTerm = term, expandedAlimentoId = null) }
     }
 
-    // This function now toggles the expanded state of a food item
+    // toggles the expanded state of a food item
     fun onAlimentoToggled(alimentoId: Int) {
         _state.update {
             if (it.expandedAlimentoId == alimentoId) {
                 it.copy(expandedAlimentoId = null) // Collapse if already expanded
             } else {
-                it.copy(expandedAlimentoId = alimentoId) // Expand new item
+                it.copy(expandedAlimentoId = alimentoId, quickAddAmount = "100") // Expand new item
             }
         }
+    }
+
+    fun onQuickAddAmountChange(amount: String) {
+        val filtered = amount.filter { it.isDigit() || it == '.' }
+        _state.update { it.copy(quickAddAmount = filtered) }
     }
 
     // limpar a busca
@@ -120,7 +129,8 @@ class HomeViewModel(
             it.copy(
                 searchTerm = "",
                 searchResults = emptyList(),
-                expandedAlimentoId = null
+                expandedAlimentoId = null,
+                quickAddAmount = "100"
             )
         }
     }
